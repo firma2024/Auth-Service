@@ -1,7 +1,7 @@
-package com.example.demo.keycloackclient;
+package com.Firma.Auth.keycloackclient;
 
-import com.example.demo.dto.Role;
-import com.example.demo.security.KeycloakSecurityUtil;
+import com.Firma.Auth.security.KeycloakSecurityUtil;
+import com.Firma.Auth.dto.Role;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.ws.rs.core.Response;
 import org.keycloak.admin.client.Keycloak;

@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.Firma.Auth;
 
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import org.springframework.boot.SpringApplication;
@@ -14,10 +14,10 @@ import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 		, type = SecuritySchemeType.OPENIDCONNECT
 		, in = SecuritySchemeIn.HEADER
 )
-public class DemoApplication {
+public class AuthApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(DemoApplication.class, args);
+		SpringApplication.run(AuthApplication.class, args);
 	}
 
 }

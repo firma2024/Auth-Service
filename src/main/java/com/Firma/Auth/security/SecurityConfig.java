@@ -1,4 +1,4 @@
-package com.example.demo.security;
+package com.Firma.Auth.security;
 
 import org.keycloak.adapters.authorization.integration.jakarta.ServletPolicyEnforcerFilter;
 import org.keycloak.adapters.authorization.spi.ConfigurationResolver;

@@ -1,4 +1,4 @@
-package com.example.demo.security;
+package com.Firma.Auth.security;
 
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
@@ -28,6 +28,7 @@ public class KeycloakSecurityUtil {
     @Value("${password}")
     private String password;
 
+
     public Keycloak getKeycloakInstance() {
         if(keycloak == null) {
             keycloak = KeycloakBuilder
@@ -37,4 +38,5 @@ public class KeycloakSecurityUtil {
         }
         return keycloak;
     }
+
 }

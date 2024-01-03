@@ -1,4 +1,4 @@
-package com.example.demo.dto;
+package com.Firma.Auth.dto;
 
 public class Role {
 

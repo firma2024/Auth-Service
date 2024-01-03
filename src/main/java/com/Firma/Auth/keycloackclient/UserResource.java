@@ -1,13 +1,10 @@
-package com.example.demo.keycloackclient;
+package com.Firma.Auth.keycloackclient;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import com.example.demo.dto.Role;
-import com.example.demo.dto.User;
-import com.example.demo.security.KeycloakSecurityUtil;
+import com.Firma.Auth.dto.Role;
+import com.Firma.Auth.security.KeycloakSecurityUtil;
+import com.Firma.Auth.dto.User;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.ws.rs.core.Response;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.common.util.CollectionUtil;
 import org.keycloak.representations.idm.CredentialRepresentation;
@@ -17,8 +14,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import jakarta.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static java.util.Collections.singletonList;
 
@@ -28,6 +26,7 @@ import static java.util.Collections.singletonList;
 public class UserResource {
 
     KeycloakSecurityUtil keycloakUtil;
+
 
     @Autowired
     public UserResource(KeycloakSecurityUtil keycloakUtil) {
@@ -76,6 +75,7 @@ public class UserResource {
             return Response.status(res.getStatusInfo()).build();
         }
     }
+
 
     @PutMapping(value = "/user")
     public Response updateUser(@RequestBody User user) {
