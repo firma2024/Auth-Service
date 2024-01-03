@@ -2,8 +2,8 @@ package com.example.demo.keycloackclient;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import com.example.demo.dto.Role;
 import com.example.demo.dto.User;
@@ -15,19 +15,12 @@ import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.repository.query.Param;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.*;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.ws.rs.core.Response;
+
+import static java.util.Collections.singletonList;
 
 @RestController
 @RequestMapping("/keycloak")
@@ -60,15 +53,32 @@ public class UserResource {
     }
 
     @PostMapping(value = "/user")
-    public Response createUser(User user) {
-        UserRepresentation userRep = mapUserRep(user);
+    public Response createUser(@RequestBody User user) {
         Keycloak keycloak = keycloakUtil.getKeycloakInstance();
+
+        // Crear el usuario
+        UserRepresentation userRep = mapUserRep(user);
         Response res = keycloak.realm(realm).users().create(userRep);
-        return Response.ok(user).build();
+
+        // Verificar si la creación fue exitosa antes de asignar roles
+        if (res.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {
+            // Obtener el ID del nuevo usuario
+            String userId = keycloak.realm(realm).users().search(user.getUserName()).get(0).getId();
+
+            // Asignar el rol "ABOGADO"
+            RoleRepresentation abogadoRole = keycloak.realm(realm).roles().get("ABOGADO").toRepresentation();
+            keycloak.realm(realm).users().get(userId).roles().realmLevel().add(singletonList(abogadoRole));
+
+            // Devolver la respuesta
+            return Response.ok(user).build();
+        } else {
+            // Devolver la respuesta de error si la creación falla
+            return Response.status(res.getStatusInfo()).build();
+        }
     }
 
     @PutMapping(value = "/user")
-    public Response updateUser(User user) {
+    public Response updateUser(@RequestBody User user) {
         UserRepresentation userRep = mapUserRep(user);
         Keycloak keycloak = keycloakUtil.getKeycloakInstance();
         keycloak.realm(realm).users().get(user.getId()).update(userRep);
@@ -80,7 +90,7 @@ public class UserResource {
         Keycloak keycloak = keycloakUtil.getKeycloakInstance();
         try {
             keycloak.realm(realm).users().get(id).remove();
-        } catch(Exception e) {
+        } catch (Exception e) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
         return Response.ok().build();
@@ -104,7 +114,7 @@ public class UserResource {
 
     private List<User> mapUsers(List<UserRepresentation> userRepresentations) {
         List<User> users = new ArrayList<>();
-        if(CollectionUtil.isNotEmpty(userRepresentations)) {
+        if (CollectionUtil.isNotEmpty(userRepresentations)) {
             userRepresentations.forEach(userRep -> {
                 users.add(mapUser(userRep));
             });
@@ -139,5 +149,4 @@ public class UserResource {
         userRep.setCredentials(creds);
         return userRep;
     }
-
 }
