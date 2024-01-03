@@ -2,13 +2,21 @@ package com.Firma.Auth.security;
 
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
+import org.keycloak.admin.client.resource.RealmResource;
+import org.keycloak.admin.client.resource.RoleMappingResource;
+import org.keycloak.admin.client.resource.UserResource;
+import org.keycloak.representations.idm.RoleRepresentation;
+import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class KeycloakSecurityUtil {
 
-    Keycloak keycloak;
+    private Keycloak keycloak;
 
     @Value("${server-url}")
     private String serverUrl;
@@ -28,9 +36,8 @@ public class KeycloakSecurityUtil {
     @Value("${password}")
     private String password;
 
-
     public Keycloak getKeycloakInstance() {
-        if(keycloak == null) {
+        if (keycloak == null) {
             keycloak = KeycloakBuilder
                     .builder().serverUrl(serverUrl).realm(realm)
                     .clientId(clientId).grantType(grantType)
@@ -38,5 +45,4 @@ public class KeycloakSecurityUtil {
         }
         return keycloak;
     }
-
 }

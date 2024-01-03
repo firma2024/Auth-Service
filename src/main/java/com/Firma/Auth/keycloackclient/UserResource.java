@@ -4,7 +4,10 @@ import com.Firma.Auth.dto.Role;
 import com.Firma.Auth.security.KeycloakSecurityUtil;
 import com.Firma.Auth.dto.User;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.common.util.CollectionUtil;
 import org.keycloak.representations.idm.CredentialRepresentation;
@@ -12,6 +15,10 @@ import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -44,6 +51,20 @@ public class UserResource {
                 keycloak.realm(realm).users().list();
         return mapUsers(userRepresentations);
     }
+    @PostMapping(value = "/admin")
+    public Response createAdmin(@RequestBody User user) {
+        return createUserWithRole(user, "ADMIN");
+    }
+
+    @PostMapping(value = "/abogado")
+    public Response createAbogado(@RequestBody User user) {
+        return createUserWithRole(user, "ABOGADO");
+    }
+
+    @PostMapping(value = "/jefe")
+    public Response createJefe(@RequestBody User user) {
+        return createUserWithRole(user, "jefe");
+    }
 
     @GetMapping(value = "/users/{id}")
     public User getUser(@PathVariable("id") String id) {
@@ -51,31 +72,24 @@ public class UserResource {
         return mapUser(keycloak.realm(realm).users().get(id).toRepresentation());
     }
 
-    @PostMapping(value = "/user")
-    public Response createUser(@RequestBody User user) {
+    public Response createUserWithRole(@RequestBody User user, String role) {
         Keycloak keycloak = keycloakUtil.getKeycloakInstance();
-
-        // Crear el usuario
         UserRepresentation userRep = mapUserRep(user);
         Response res = keycloak.realm(realm).users().create(userRep);
 
-        // Verificar si la creación fue exitosa antes de asignar roles
         if (res.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {
-            // Obtener el ID del nuevo usuario
+
             String userId = keycloak.realm(realm).users().search(user.getUserName()).get(0).getId();
 
-            // Asignar el rol "ABOGADO"
-            RoleRepresentation abogadoRole = keycloak.realm(realm).roles().get("ABOGADO").toRepresentation();
-            keycloak.realm(realm).users().get(userId).roles().realmLevel().add(singletonList(abogadoRole));
+            RoleRepresentation Role = keycloak.realm(realm).roles().get(role).toRepresentation();
+            keycloak.realm(realm).users().get(userId).roles().realmLevel().add(singletonList(Role));
 
-            // Devolver la respuesta
             return Response.ok(user).build();
         } else {
-            // Devolver la respuesta de error si la creación falla
+
             return Response.status(res.getStatusInfo()).build();
         }
     }
-
 
     @PutMapping(value = "/user")
     public Response updateUser(@RequestBody User user) {
@@ -108,16 +122,14 @@ public class UserResource {
                                @PathVariable("roleName") String roleName) {
         Keycloak keycloak = keycloakUtil.getKeycloakInstance();
         RoleRepresentation role = keycloak.realm(realm).roles().get(roleName).toRepresentation();
-        keycloak.realm(realm).users().get(id).roles().realmLevel().add(Arrays.asList(role));
+        keycloak.realm(realm).users().get(id).roles().realmLevel().add(singletonList(role));
         return Response.ok().build();
     }
 
     private List<User> mapUsers(List<UserRepresentation> userRepresentations) {
         List<User> users = new ArrayList<>();
         if (CollectionUtil.isNotEmpty(userRepresentations)) {
-            userRepresentations.forEach(userRep -> {
-                users.add(mapUser(userRep));
-            });
+            userRepresentations.forEach(userRep -> users.add(mapUser(userRep)));
         }
         return users;
     }
