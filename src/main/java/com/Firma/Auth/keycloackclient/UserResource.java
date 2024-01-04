@@ -1,13 +1,10 @@
 package com.Firma.Auth.keycloackclient;
 
 import com.Firma.Auth.dto.Role;
-import com.Firma.Auth.security.KeycloakSecurityUtil;
 import com.Firma.Auth.dto.User;
+import com.Firma.Auth.security.KeycloakSecurityUtil;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.SecurityContext;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.common.util.CollectionUtil;
 import org.keycloak.representations.idm.CredentialRepresentation;
@@ -15,14 +12,9 @@ import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static java.util.Collections.singletonList;
@@ -78,15 +70,15 @@ public class UserResource {
         Response res = keycloak.realm(realm).users().create(userRep);
 
         if (res.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {
-
+            UserRepresentation userRepresentation = keycloak.realm(realm).users().search(user.getUserName()).get(0);
+            emailVerification(userRepresentation.getId());
+            keycloak.realm(realm).users().get(userRepresentation.getId()).resetPassword(mapUserRep(user).getCredentials().get(0));
+            keycloak.realm(realm).users().get(userRepresentation.getId()).executeActionsEmail(singletonList("UPDATE_PASSWORD"));
             String userId = keycloak.realm(realm).users().search(user.getUserName()).get(0).getId();
-
             RoleRepresentation Role = keycloak.realm(realm).roles().get(role).toRepresentation();
             keycloak.realm(realm).users().get(userId).roles().realmLevel().add(singletonList(Role));
-
             return Response.ok(user).build();
         } else {
-
             return Response.status(res.getStatusInfo()).build();
         }
     }
@@ -152,13 +144,21 @@ public class UserResource {
         userRep.setLastName(user.getLastName());
         userRep.setEmail(user.getEmail());
         userRep.setEnabled(true);
-        userRep.setEmailVerified(true);
+        userRep.setEmailVerified(false);
+        userRep.setRequiredActions(singletonList("VERIFY_EMAIL"));
+        userRep.setRequiredActions(singletonList("UPDATE_PASSWORD"));
         List<CredentialRepresentation> creds = new ArrayList<>();
         CredentialRepresentation cred = new CredentialRepresentation();
+        cred.setType(CredentialRepresentation.PASSWORD);
         cred.setValue(user.getPassword());
         cred.setTemporary(true);
         creds.add(cred);
         userRep.setCredentials(creds);
         return userRep;
+    }
+
+    private void emailVerification(String userId) {
+        Keycloak keycloak = keycloakUtil.getKeycloakInstance();
+        keycloak.realm(realm).users().get(userId).executeActionsEmail(singletonList("VERIFY_EMAIL"));
     }
 }
