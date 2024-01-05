@@ -8,6 +8,10 @@
   "http-method-as-scope": true,
   "paths": [
     {
+      "path": "/firma/auth/*",
+        "enforcement-mode": "DISABLED"
+    },
+    {
       "path": "/swagger-ui/*",
       "enforcement-mode": "DISABLED"
     },
