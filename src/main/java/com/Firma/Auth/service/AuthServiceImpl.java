@@ -12,17 +12,13 @@ import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.RequestEntity;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.client.RestTemplate;
 
-import java.security.Key;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +43,7 @@ public class AuthServiceImpl implements AuthService{
 
     @Value("${keycloak.credentials.secret}")
     private  String clientSecret;
+
     KeycloakSecurityUtil keycloakUtil;
     @Autowired
     public AuthServiceImpl(KeycloakSecurityUtil keycloakUtil) {
@@ -59,18 +56,17 @@ public class AuthServiceImpl implements AuthService{
         Response res = keycloak.realm(realm).users().create(userRep);
 
         if (res.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {
-            UserRepresentation userRepresentation = getUserById(userRep.getId());
+            UserRepresentation userRepresentation = keycloak.realm(realm).users().search(user.getUserName()).get(0);
             emailVerification(userRepresentation.getId());
             keycloak.realm(realm).users().get(userRepresentation.getId()).resetPassword(mapUserRep(user).getCredentials().get(0));
             String userId = keycloak.realm(realm).users().search(user.getUserName()).get(0).getId();
             RoleRepresentation Role = keycloak.realm(realm).roles().get(role).toRepresentation();
             keycloak.realm(realm).users().get(userId).roles().realmLevel().add(singletonList(Role));
-            return ResponseEntity.ok().build();
+            return ResponseEntity.status(HttpStatus.CREATED).body(user);
         } else {
             return ResponseEntity.status(res.getStatus()).build();
         }
     }
-    @Override
     public void emailVerification(String userId) {
         Keycloak keycloak = keycloakUtil.getKeycloakInstance();
         keycloak.realm(realm).users().get(userId).executeActionsEmail(singletonList("VERIFY_EMAIL"));

@@ -15,10 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
-@RequestMapping("/firma/auth")
+@RequestMapping("/api/auth/")
 @SecurityRequirement(name = "Keycloak")
 public class AuthController {
 
@@ -43,21 +41,21 @@ public class AuthController {
     //agregar el pre autorize para los 3 endpoints.
     //crear el endopoint de olvidar contraseña.
     @PostMapping(value = "/admin")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public ResponseEntity<?> createAdmin(@RequestBody User user) {
         return authServiceImpl.createUserWithRole(user, "ADMIN");
     }
 
     @PostMapping(value = "/abogado")
-    @PreAuthorize("hasRole('JEFE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN' ,'JEFE')")
     public ResponseEntity<?> createAbogado(@RequestBody User user) {
         return authServiceImpl.createUserWithRole(user, "ABOGADO");
     }
 
     @PostMapping(value = "/jefe")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public ResponseEntity<?> createJefe(@RequestBody User user) {
-        return authServiceImpl.createUserWithRole(user, "jefe");
+        return authServiceImpl.createUserWithRole(user, "JEFE");
     }
     @PutMapping(value = "/user")
     public Response updateUser(@RequestBody User user) {
@@ -67,11 +65,11 @@ public class AuthController {
         return Response.ok(user).build();
     }
     @DeleteMapping(value = "/users/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public ResponseEntity<?> deleteUser(@PathVariable("id") String id) {
         try {
            if (authServiceImpl.deleteAccount(id))
-               return ResponseEntity.ok().build();
+               return ResponseEntity.status(HttpStatus.OK).body("User deleted");
            else return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
