@@ -1,8 +1,7 @@
-package com.Firma.Auth.service;
+package com.firma.auth.service;
 
-import com.Firma.Auth.dto.AuthenticationRequest;
-import com.Firma.Auth.dto.User;
-import jakarta.ws.rs.core.Response;
+import com.firma.auth.dto.AuthenticationRequest;
+import com.firma.auth.dto.User;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.http.ResponseEntity;
 

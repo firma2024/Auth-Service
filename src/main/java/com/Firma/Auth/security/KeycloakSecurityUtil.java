@@ -1,4 +1,4 @@
-package com.Firma.Auth.security;
+package com.firma.auth.security;
 
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;

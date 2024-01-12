@@ -1,4 +1,4 @@
-package com.Firma.Auth.tool;
+package com.firma.auth.tool;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.NotImplementedException;
@@ -8,7 +8,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
-import org.springframework.lang.NonNullApi;
 
 import java.io.IOException;
 import java.util.Collections;

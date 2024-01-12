@@ -1,12 +1,14 @@
-package com.Firma.Auth.service;
+package com.firma.auth.service;
 
-import com.Firma.Auth.dto.AuthenticationRequest;
-import com.Firma.Auth.dto.User;
-import com.Firma.Auth.security.KeycloakSecurityUtil;
-import com.Firma.Auth.tool.ObjectToUrlEncodedConverter;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.firma.auth.dto.AuthenticationRequest;
+import com.firma.auth.dto.User;
+import com.firma.auth.security.KeycloakSecurityUtil;
+import com.firma.auth.tool.ObjectToUrlEncodedConverter;
 import jakarta.ws.rs.core.Response;
 import org.keycloak.admin.client.Keycloak;
+import org.keycloak.admin.client.resource.UserResource;
+import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
@@ -26,7 +28,7 @@ import java.util.Map;
 import static java.util.Collections.singletonList;
 
 @Service
-public class AuthServiceImpl implements AuthService{
+public class AuthServiceImpl implements AuthService {
 
 
     @Value("${server-url}")
@@ -74,6 +76,15 @@ public class AuthServiceImpl implements AuthService{
 
     @Override
     public void forgotPassword(String username) {
+         UsersResource usersResource = keycloakUtil.getKeycloakInstance().realm(realm).users();
+        List<UserRepresentation> userRepresentations = keycloakUtil.getKeycloakInstance().realm(realm).users().search(username);
+        UserRepresentation userRepresentation = userRepresentations.stream().findFirst().orElse(null);
+        if (userRepresentation!= null){
+            UserResource userResource = usersResource.get(userRepresentation.getId());
+            List<String> actions = new ArrayList<>();
+            actions.add("UPDATE_PASSWORD");
+            userResource.executeActionsEmail(actions);
+        }
     }
 
     @Override

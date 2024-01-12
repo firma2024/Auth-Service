@@ -1,4 +1,4 @@
-package com.Firma.Auth.dto;
+package com.firma.auth.dto;
 
 import java.util.List;
 import java.util.Objects;

@@ -1,9 +1,10 @@
-package com.Firma.Auth.controller;
+package com.firma.auth.controller;
 
-import com.Firma.Auth.dto.AuthenticationRequest;
-import com.Firma.Auth.dto.User;
-import com.Firma.Auth.security.KeycloakSecurityUtil;
-import com.Firma.Auth.service.AuthServiceImpl;
+
+import com.firma.auth.dto.AuthenticationRequest;
+import com.firma.auth.dto.User;
+import com.firma.auth.security.KeycloakSecurityUtil;
+import com.firma.auth.service.AuthServiceImpl;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.ws.rs.core.Response;
 import org.keycloak.admin.client.Keycloak;

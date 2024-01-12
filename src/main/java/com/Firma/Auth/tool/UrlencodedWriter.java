@@ -1,4 +1,4 @@
-package com.Firma.Auth.tool;
+package com.firma.auth.tool;
 
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 
