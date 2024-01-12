@@ -39,6 +39,11 @@ public class AuthController {
         return new ResponseEntity<>(token, HttpStatus.OK);
     }
 
+    @PostMapping("/{username}/forgot-password")
+    public void forgotPassword(@PathVariable String username) {
+        authServiceImpl.forgotPassword(username);
+    }
+
     //agregar el pre autorize para los 3 endpoints.
     //crear el endopoint de olvidar contraseña.
     @PostMapping(value = "/admin")

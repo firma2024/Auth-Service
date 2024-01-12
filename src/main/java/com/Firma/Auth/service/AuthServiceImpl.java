@@ -84,7 +84,9 @@ public class AuthServiceImpl implements AuthService {
             List<String> actions = new ArrayList<>();
             actions.add("UPDATE_PASSWORD");
             userResource.executeActionsEmail(actions);
+            return;
         }
+        throw new RuntimeException("User not found");
     }
 
     @Override
