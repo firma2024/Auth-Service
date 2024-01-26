@@ -1,6 +1,7 @@
 package com.firma.auth.tool;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.validation.constraints.NotNull;
 import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;

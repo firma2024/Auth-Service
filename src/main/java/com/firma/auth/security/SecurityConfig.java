@@ -29,6 +29,8 @@ public class SecurityConfig {
         http.cors(AbstractHttpConfigurer::disable);
         http.authorizeHttpRequests( auth -> {
             auth.requestMatchers("/api/auth/login").permitAll();
+            auth.requestMatchers("/api/auth/admin").permitAll();
+            auth.requestMatchers("/api/auth/{username}/forgot-password").permitAll();
             auth.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll();
             auth.anyRequest().authenticated();
         });

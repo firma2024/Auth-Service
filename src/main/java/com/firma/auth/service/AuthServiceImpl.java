@@ -1,10 +1,11 @@
 package com.firma.auth.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.firma.auth.dto.AuthenticationRequest;
+import com.firma.auth.dto.TokenResponse;
 import com.firma.auth.dto.User;
 import com.firma.auth.security.KeycloakSecurityUtil;
 import com.firma.auth.tool.ObjectToUrlEncodedConverter;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.core.Response;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.UserResource;
@@ -62,13 +63,17 @@ public class AuthServiceImpl implements AuthService {
             emailVerification(userRepresentation.getId());
             keycloak.realm(realm).users().get(userRepresentation.getId()).resetPassword(mapUserRep(user).getCredentials().get(0));
             String userId = keycloak.realm(realm).users().search(user.getUserName()).get(0).getId();
+
             RoleRepresentation Role = keycloak.realm(realm).roles().get(role).toRepresentation();
+
             keycloak.realm(realm).users().get(userId).roles().realmLevel().add(singletonList(Role));
             return ResponseEntity.status(HttpStatus.CREATED).body(user);
         } else {
-            return ResponseEntity.status(res.getStatus()).build();
+            String errorMessage = res.readEntity(String.class);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
         }
     }
+
     public void emailVerification(String userId) {
         Keycloak keycloak = keycloakUtil.getKeycloakInstance();
         keycloak.realm(realm).users().get(userId).executeActionsEmail(singletonList("VERIFY_EMAIL"));
@@ -108,6 +113,7 @@ public class AuthServiceImpl implements AuthService {
         return keycloak.realm(realm).users().get(userId).toRepresentation();
     }
 
+    @Override
     public UserRepresentation mapUserRep(User user) {
         UserRepresentation userRep = new UserRepresentation();
         userRep.setId(user.getId());
@@ -129,7 +135,8 @@ public class AuthServiceImpl implements AuthService {
         return userRep;
     }
 
-    public String getAccessToken(AuthenticationRequest request) {
+    @Override
+    public TokenResponse getAccessToken(AuthenticationRequest request) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         ObjectMapper objectMapper = new ObjectMapper();
@@ -148,7 +155,9 @@ public class AuthServiceImpl implements AuthService {
         ResponseEntity<Map> responseEntity = restTemplate.exchange(requestEntity, Map.class);
         Map responseMap = responseEntity.getBody();
         assert responseMap != null;
-        return (String) responseMap.get("access_token");
+        return TokenResponse.builder()
+                .access_token((String) responseMap.get("access_token"))
+                .role(null)
+                .build();
     }
-
 }

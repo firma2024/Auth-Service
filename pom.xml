@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>firma</groupId>
-    <artifactId>auth-maven</artifactId>
+    <artifactId>com.firma.auth</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>auth-maven</name>
-    <description>auth-maven</description>
+    <name>auth</name>
+    <description>firma auth</description>
     <properties>
         <java.version>17</java.version>
     </properties>
@@ -25,7 +25,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -40,7 +39,20 @@
         <dependency>
             <groupId>org.keycloak</groupId>
             <artifactId>keycloak-admin-client</artifactId>
-            <version>23.0.4</version>
+            <version>23.0.3</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.keycloak/keycloak-servlet-filter-adapter -->
+        <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-servlet-filter-adapter</artifactId>
+            <version>23.0.3</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.keycloak/keycloak-spring-boot-starter -->
+        <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-spring-boot-starter</artifactId>
+            <version>23.0.3</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -57,12 +69,9 @@
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>2.3.0</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.keycloak/keycloak-spring-boot-starter -->
-        <dependency>
-            <groupId>org.keycloak</groupId>
-            <artifactId>keycloak-spring-boot-starter</artifactId>
-            <version>23.0.4</version>
-        </dependency>
+
+
+
     </dependencies>
 
     <build>
