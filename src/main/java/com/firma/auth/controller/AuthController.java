@@ -20,10 +20,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/auth/")
 @SecurityRequirement(name = "Keycloak")
 public class AuthController {
-
     KeycloakSecurityUtil keycloakUtil;
     private final AuthServiceImpl authServiceImpl;
-
     @Value("${realm}")
     private String realm;
 
