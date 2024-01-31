@@ -1,4 +1,4 @@
-package com.firma.auth.dto;
+package com.firma.auth.dto.response;
 
 import lombok.*;
 

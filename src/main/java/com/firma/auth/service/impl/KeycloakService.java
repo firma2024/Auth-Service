@@ -1,11 +1,13 @@
-package com.firma.auth.service;
+package com.firma.auth.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.firma.auth.dto.AuthenticationRequest;
-import com.firma.auth.dto.TokenResponse;
-import com.firma.auth.dto.User;
-import com.firma.auth.dto.UserResponse;
+import com.firma.auth.dto.request.AuthenticationRequest;
+import com.firma.auth.dto.request.UserRequest;
+import com.firma.auth.dto.response.TokenResponse;
+import com.firma.auth.dto.response.UserResponse;
 import com.firma.auth.security.KeycloakSecurityUtil;
+import com.firma.auth.service.intf.IDataService;
+import com.firma.auth.service.intf.IKeycloakService;
 import com.firma.auth.tool.ObjectToUrlEncodedConverter;
 import jakarta.ws.rs.core.Response;
 import org.keycloak.admin.client.Keycloak;
@@ -22,16 +24,17 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.client.RestTemplate;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 import static java.util.Collections.singletonList;
-
+/**
+ * Clase KeycloakService que implementa la interfaz IKeycloakService
+ * para la creación de usuarios en Keycloak, la obtención de tokens y
+ * la eliminación de cuentas.
+ */
 @Service
-public class AuthServiceImpl implements AuthService {
-
+public class KeycloakService implements IKeycloakService {
 
     @Value("${server-url}")
     private  String authServerUrl;
@@ -47,54 +50,49 @@ public class AuthServiceImpl implements AuthService {
 
     @Value("${keycloak.credentials.secret}")
     private  String clientSecret;
-
     KeycloakSecurityUtil keycloakUtil;
+    private final IDataService IDataService;
+
     @Autowired
-    public AuthServiceImpl(KeycloakSecurityUtil keycloakUtil) {
+    public KeycloakService(KeycloakSecurityUtil keycloakUtil, com.firma.auth.service.intf.IDataService IDataService) {
         this.keycloakUtil = keycloakUtil;
+        this.IDataService = IDataService;
     }
 
-    public ResponseEntity<?> createUserWithRole(@RequestBody User user, String role) {
+    public ResponseEntity<?> createUserWithRole(@RequestBody UserRequest user, String role) {
         Keycloak keycloak = keycloakUtil.getKeycloakInstance();
         UserRepresentation userRep = mapUserRep(user);
         Response res = keycloak.realm(realm).users().create(userRep);
 
         if (res.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL) {
-            UserRepresentation userRepresentation = keycloak.realm(realm).users().search(user.getUserName()).get(0);
+            UserRepresentation userRepresentation = keycloak.realm(realm).users().search(user.getUsername()).get(0);
             emailVerification(userRepresentation.getId());
             keycloak.realm(realm).users().get(userRepresentation.getId()).resetPassword(mapUserRep(user).getCredentials().get(0));
-            String userId = keycloak.realm(realm).users().search(user.getUserName()).get(0).getId();
+            String userId = keycloak.realm(realm).users().search(user.getUsername()).get(0).getId();
 
             RoleRepresentation Role = keycloak.realm(realm).roles().get(role).toRepresentation();
 
             keycloak.realm(realm).users().get(userId).roles().realmLevel().add(singletonList(Role));
             //Ahora en este punto se tiene que mandar
-            //todo el usuario con el rol a el componente de datos para que se guarde en la base de datos
-            SendToDataComponent(user);
+            //todo el usuario con el rol a el componente de datos
+            // para que se guarde en la base de datos
+            UserResponse userResponse = UserResponse.builder()
+                    .nombres(user.getNombres())
+                    .correo(user.getCorreo())
+                    .telefono(user.getTelefono())
+                    .identificacion(user.getIdentificacion())
+                    .username(user.getUsername())
+                    .tipoDocumento(user.getTipoDocumento())
+                    .especialidades(user.getEspecialidades())
+                    .firmaId(user.getFirmaId())
+                    .build();
+
+            IDataService.SendToDataComponent(userResponse);
             return ResponseEntity.status(HttpStatus.CREATED).body(user);
         } else {
             String errorMessage = res.readEntity(String.class);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
         }
-    }
-
-    @Override
-    public void SendToDataComponent(User user) {
-        String url = "http://localhost:8082//api/data/usuario/add/abogado";
-        RestTemplate restTemplate = new RestTemplate();
-        UserResponse userResponse = UserResponse.builder()
-                .nombres(user.getFirstName() + " " + user.getLastName())
-                .correo(user.getEmail())
-                .telefono(user.getTelefono())
-                .identificacion(user.getIdentificacion())
-                .username(user.getUserName())
-                .tipoDocumento(user.getTipoDocumento())
-                .especialidades(user.getEspecialidades())
-                .firmaId(user.getFirmaId())
-                .build();
-
-        ResponseEntity<String> response = restTemplate.postForEntity(url, userResponse, String.class);
-        response.getBody();
     }
 
     @Override
@@ -138,12 +136,11 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public UserRepresentation mapUserRep(User user) {
+    public UserRepresentation mapUserRep(UserRequest user) {
         UserRepresentation userRep = new UserRepresentation();
-        userRep.setUsername(user.getUserName());
-        userRep.setFirstName(user.getFirstName());
-        userRep.setLastName(user.getLastName());
-        userRep.setEmail(user.getEmail());
+        userRep.setUsername(user.getUsername());
+        userRep.setFirstName(user.getNombres());
+        userRep.setEmail(user.getCorreo());
         userRep.setEnabled(true);
         userRep.setEmailVerified(false);
         userRep.setRequiredActions(singletonList("VERIFY_EMAIL"));
