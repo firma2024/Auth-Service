@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.firma.auth.dto.AuthenticationRequest;
 import com.firma.auth.dto.TokenResponse;
 import com.firma.auth.dto.User;
+import com.firma.auth.dto.UserResponse;
 import com.firma.auth.security.KeycloakSecurityUtil;
 import com.firma.auth.tool.ObjectToUrlEncodedConverter;
 import jakarta.ws.rs.core.Response;
@@ -67,6 +68,9 @@ public class AuthServiceImpl implements AuthService {
             RoleRepresentation Role = keycloak.realm(realm).roles().get(role).toRepresentation();
 
             keycloak.realm(realm).users().get(userId).roles().realmLevel().add(singletonList(Role));
+            //Ahora en este punto se tiene que mandar
+            //todo el usuario con el rol a el componente de datos para que se guarde en la base de datos
+            SendToDataComponent(user);
             return ResponseEntity.status(HttpStatus.CREATED).body(user);
         } else {
             String errorMessage = res.readEntity(String.class);
@@ -74,6 +78,26 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
+    @Override
+    public void SendToDataComponent(User user) {
+        String url = "http://localhost:8082//api/data/usuario/add/abogado";
+        RestTemplate restTemplate = new RestTemplate();
+        UserResponse userResponse = UserResponse.builder()
+                .nombres(user.getFirstName() + " " + user.getLastName())
+                .correo(user.getEmail())
+                .telefono(user.getTelefono())
+                .identificacion(user.getIdentificacion())
+                .username(user.getUserName())
+                .tipoDocumento(user.getTipoDocumento())
+                .especialidades(user.getEspecialidades())
+                .firmaId(user.getFirmaId())
+                .build();
+
+        ResponseEntity<String> response = restTemplate.postForEntity(url, userResponse, String.class);
+        response.getBody();
+    }
+
+    @Override
     public void emailVerification(String userId) {
         Keycloak keycloak = keycloakUtil.getKeycloakInstance();
         keycloak.realm(realm).users().get(userId).executeActionsEmail(singletonList("VERIFY_EMAIL"));
@@ -116,7 +140,6 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public UserRepresentation mapUserRep(User user) {
         UserRepresentation userRep = new UserRepresentation();
-        userRep.setId(user.getId());
         userRep.setUsername(user.getUserName());
         userRep.setFirstName(user.getFirstName());
         userRep.setLastName(user.getLastName());
