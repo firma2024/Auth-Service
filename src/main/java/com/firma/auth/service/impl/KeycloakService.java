@@ -1,10 +1,12 @@
 package com.firma.auth.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.firma.auth.dto.Role;
 import com.firma.auth.dto.request.AuthenticationRequest;
 import com.firma.auth.dto.request.UserRequest;
 import com.firma.auth.dto.response.TokenResponse;
 import com.firma.auth.dto.response.UserResponse;
+import com.firma.auth.exception.ErrorDataServiceException;
 import com.firma.auth.security.KeycloakSecurityUtil;
 import com.firma.auth.service.intf.IDataService;
 import com.firma.auth.service.intf.IKeycloakService;
@@ -51,15 +53,15 @@ public class KeycloakService implements IKeycloakService {
     @Value("${keycloak.credentials.secret}")
     private  String clientSecret;
     KeycloakSecurityUtil keycloakUtil;
-    private final IDataService IDataService;
+    private IDataService dataService;
 
     @Autowired
-    public KeycloakService(KeycloakSecurityUtil keycloakUtil, com.firma.auth.service.intf.IDataService IDataService) {
+    public KeycloakService(KeycloakSecurityUtil keycloakUtil,IDataService dataService) {
         this.keycloakUtil = keycloakUtil;
-        this.IDataService = IDataService;
+        this.dataService = dataService;
     }
 
-    public ResponseEntity<?> createUserWithRole(@RequestBody UserRequest user, String role) {
+    public ResponseEntity<?> createUserWithRole(@RequestBody UserRequest user, String role) throws ErrorDataServiceException {
         Keycloak keycloak = keycloakUtil.getKeycloakInstance();
         UserRepresentation userRep = mapUserRep(user);
         Response res = keycloak.realm(realm).users().create(userRep);
@@ -86,8 +88,11 @@ public class KeycloakService implements IKeycloakService {
                     .especialidades(user.getEspecialidades())
                     .firmaId(user.getFirmaId())
                     .build();
-
-            IDataService.SendToDataComponent(userResponse);
+            switch (role) {
+                case "ADMIN" -> dataService.addAdmin(userResponse);
+                case "ABOGADO" -> dataService.addAbogado(userResponse);
+                case "JEFE" -> dataService.addJefe(userResponse);
+            }
             return ResponseEntity.status(HttpStatus.CREATED).body(user);
         } else {
             String errorMessage = res.readEntity(String.class);
@@ -156,7 +161,7 @@ public class KeycloakService implements IKeycloakService {
     }
 
     @Override
-    public TokenResponse getAccessToken(AuthenticationRequest request) {
+    public TokenResponse getAccessToken(AuthenticationRequest request) throws ErrorDataServiceException {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         ObjectMapper objectMapper = new ObjectMapper();
@@ -172,12 +177,17 @@ public class KeycloakService implements IKeycloakService {
                 .post(authServerUrl + "/realms/" + realm + "/protocol/openid-connect/token")
                 .headers(headers)
                 .body(requestBody);
+
         ResponseEntity<Map> responseEntity = restTemplate.exchange(requestEntity, Map.class);
         Map responseMap = responseEntity.getBody();
         assert responseMap != null;
+
+        Role role = dataService.getRole(request.getUsername());
+
+
         return TokenResponse.builder()
                 .access_token((String) responseMap.get("access_token"))
-                .role(null)
+                .role(role.getNombre())
                 .build();
     }
 }

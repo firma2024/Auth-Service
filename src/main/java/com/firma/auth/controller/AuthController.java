@@ -4,6 +4,7 @@ package com.firma.auth.controller;
 import com.firma.auth.dto.request.AuthenticationRequest;
 import com.firma.auth.dto.request.UserRequest;
 import com.firma.auth.dto.response.TokenResponse;
+import com.firma.auth.exception.ErrorDataServiceException;
 import com.firma.auth.service.impl.KeycloakService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,10 +25,13 @@ public class AuthController {
     }
     @PostMapping("/login")
     public ResponseEntity<?> getAccessToken(@RequestBody AuthenticationRequest request) {
-        TokenResponse token = keycloakService.getAccessToken(request);
-        if (token.getAccess_token() == null)
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        return new ResponseEntity<>(token, HttpStatus.OK);
+
+        try {
+            TokenResponse token = keycloakService.getAccessToken(request);
+            return new ResponseEntity<>(token, HttpStatus.OK);
+        } catch (ErrorDataServiceException e) {
+            return new ResponseEntity<>(e,HttpStatus.BAD_REQUEST);
+        }
     }
 
     @PostMapping("/{username}/forgot-password")
@@ -37,19 +41,31 @@ public class AuthController {
 
     @PostMapping(value = "/admin")
     public ResponseEntity<?> createAdmin(@RequestBody UserRequest userRequest) {
-        return keycloakService.createUserWithRole(userRequest, "ADMIN");
+        try {
+            return keycloakService.createUserWithRole(userRequest, "ADMIN");
+        } catch (ErrorDataServiceException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
     @PostMapping(value = "/abogado")
     @PreAuthorize("hasAnyAuthority('ADMIN' ,'JEFE')")
     public ResponseEntity<?> createAbogado(@RequestBody UserRequest userRequest) {
-        return keycloakService.createUserWithRole(userRequest, "ABOGADO");
+        try {
+            return keycloakService.createUserWithRole(userRequest, "ABOGADO");
+        } catch (ErrorDataServiceException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
     @PostMapping(value = "/jefe")
     @PreAuthorize("hasAnyAuthority('ADMIN')")
     public ResponseEntity<?> createJefe(@RequestBody UserRequest userRequest) {
-        return keycloakService.createUserWithRole(userRequest, "JEFE");
+        try {
+            return keycloakService.createUserWithRole(userRequest, "JEFE");
+        } catch (ErrorDataServiceException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
     @DeleteMapping(value = "/users/{id}")
