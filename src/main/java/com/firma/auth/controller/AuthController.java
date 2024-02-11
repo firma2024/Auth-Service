@@ -67,6 +67,11 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
+    @GetMapping(value = "/hola")
+    @PreAuthorize("hasAnyAuthority('JEFE')")
+    public ResponseEntity<?> hola() {
+        return ResponseEntity.status(HttpStatus.OK).body("Hola");
+    }
 
     @DeleteMapping(value = "/users/{id}")
     @PreAuthorize("hasAnyAuthority('ADMIN')")

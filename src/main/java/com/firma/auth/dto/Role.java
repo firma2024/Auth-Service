@@ -8,7 +8,6 @@ import lombok.*;
 @Setter
 @Builder
 public class Role {
-
     private String id;
     private String nombre;
 }

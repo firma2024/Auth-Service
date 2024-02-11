@@ -8,7 +8,7 @@ import com.firma.auth.dto.response.TokenResponse;
 import com.firma.auth.dto.response.UserResponse;
 import com.firma.auth.exception.ErrorDataServiceException;
 import com.firma.auth.security.KeycloakSecurityUtil;
-import com.firma.auth.service.intf.IDataService;
+import com.firma.auth.service.intf.IIntegrationService;
 import com.firma.auth.service.intf.IKeycloakService;
 import com.firma.auth.tool.ObjectToUrlEncodedConverter;
 import jakarta.ws.rs.core.Response;
@@ -30,10 +30,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import static java.util.Collections.singletonList;
+
 /**
- * Clase KeycloakService que implementa la interfaz IKeycloakService
- * para la creación de usuarios en Keycloak, la obtención de tokens y
- * la eliminación de cuentas.
+ * Class KeycloakService which implements the IKeycloakService interface
+ * This class is used to manage the Keycloak service, including the creation of users, the generation of access tokens,
+ * the password recovery and the deletion of accounts.
+ * @see IKeycloakService
+ * @see KeycloakSecurityUtil
+ * @see IIntegrationService
+ * @see UserRequest
+ * @see UserResponse
+ * @see Role
+ * @see TokenResponse
+ * @see ErrorDataServiceException
+ * @see AuthenticationRequest
  */
 @Service
 public class KeycloakService implements IKeycloakService {
@@ -53,14 +63,22 @@ public class KeycloakService implements IKeycloakService {
     @Value("${keycloak.credentials.secret}")
     private  String clientSecret;
     KeycloakSecurityUtil keycloakUtil;
-    private IDataService dataService;
+    private final IIntegrationService dataService;
 
     @Autowired
-    public KeycloakService(KeycloakSecurityUtil keycloakUtil,IDataService dataService) {
+    public KeycloakService(KeycloakSecurityUtil keycloakUtil, IIntegrationService dataService) {
         this.keycloakUtil = keycloakUtil;
         this.dataService = dataService;
     }
 
+    /**
+     * Método para crear un usuario con un rol específico en Keycloak.
+     * @param user Usuario a crear.
+     * @param role Rol del usuario (ADMIN, ABOGADO, JEFE).
+     * @throws ErrorDataServiceException Excepción en caso de error en el servicio de datos.
+     * @return ResponseEntity con el usuario creado.
+     */
+    @Override
     public ResponseEntity<?> createUserWithRole(@RequestBody UserRequest user, String role) throws ErrorDataServiceException {
         Keycloak keycloak = keycloakUtil.getKeycloakInstance();
         UserRepresentation userRep = mapUserRep(user);
@@ -75,9 +93,7 @@ public class KeycloakService implements IKeycloakService {
             RoleRepresentation Role = keycloak.realm(realm).roles().get(role).toRepresentation();
 
             keycloak.realm(realm).users().get(userId).roles().realmLevel().add(singletonList(Role));
-            //Ahora en este punto se tiene que mandar
-            //todo el usuario con el rol a el componente de datos
-            // para que se guarde en la base de datos
+
             UserResponse userResponse = UserResponse.builder()
                     .nombres(user.getNombres())
                     .correo(user.getCorreo())
@@ -88,6 +104,7 @@ public class KeycloakService implements IKeycloakService {
                     .especialidades(user.getEspecialidades())
                     .firmaId(user.getFirmaId())
                     .build();
+
             switch (role) {
                 case "ADMIN" -> dataService.addAdmin(userResponse);
                 case "ABOGADO" -> dataService.addAbogado(userResponse);
