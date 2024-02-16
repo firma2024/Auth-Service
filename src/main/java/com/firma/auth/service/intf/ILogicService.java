@@ -5,9 +5,9 @@ import com.firma.auth.dto.Role;
 import com.firma.auth.dto.response.UserResponse;
 import com.firma.auth.exception.ErrorDataServiceException;
 
-public interface IIntegrationService {
+public interface ILogicService {
 
-    void addAdmin(UserResponse user) throws ErrorDataServiceException;
+    String addAdmin(UserResponse user) throws ErrorDataServiceException;
 
     void addAbogado(UserResponse user) throws ErrorDataServiceException;
 

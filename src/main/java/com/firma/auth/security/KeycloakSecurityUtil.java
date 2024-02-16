@@ -14,8 +14,8 @@ import org.springframework.stereotype.Component;
 public class KeycloakSecurityUtil {
 
     private Keycloak keycloak;
-    @Value("${server-url}")
-    private String serverUrl;
+    @Value("${authServerUrl-url}")
+    private String authServerUrl;
     @Value("${realm}")
     private String realm;
     @Value("${client-id}")
@@ -33,7 +33,7 @@ public class KeycloakSecurityUtil {
     public Keycloak getKeycloakInstance() {
         if (keycloak == null) {
             keycloak = KeycloakBuilder.builder()
-                    .serverUrl(serverUrl)
+                    .serverUrl(authServerUrl)
                     .realm(realm)
                     .clientId(clientId)
                     .grantType(OAuth2Constants.PASSWORD)

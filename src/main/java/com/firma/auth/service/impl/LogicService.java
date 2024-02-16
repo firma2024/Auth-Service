@@ -3,34 +3,38 @@ package com.firma.auth.service.impl;
 import com.firma.auth.dto.Role;
 import com.firma.auth.dto.response.UserResponse;
 import com.firma.auth.exception.ErrorDataServiceException;
-import com.firma.auth.service.intf.IIntegrationService;
+import com.firma.auth.service.intf.ILogicService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
-public class IntegrationService implements IIntegrationService {
+public class LogicService implements ILogicService {
 
-    @Value( "${api.integration.url}")
-    String urlData;
+    @Value( "${api.logic.url}")
+    private String urlData;
 
-    private final RestTemplate restTemplate;
     @Autowired
-    public IntegrationService(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
-    }
-
+    private  RestTemplate restTemplate;
 
     @Override
-    public void addAdmin(UserResponse user) throws ErrorDataServiceException {
-        ResponseEntity<String> response = restTemplate.postForEntity(urlData + "/add/admin", user, String.class);
-        if (response.getStatusCode().is4xxClientError() || response.getStatusCode().is5xxServerError()) {
+    public String addAdmin(UserResponse user) throws ErrorDataServiceException {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<UserResponse> requestEntity = new HttpEntity<>(user, headers);
+            ResponseEntity<String> response = restTemplate.exchange(
+                    urlData + "/add/admin",
+                    HttpMethod.POST,
+                    requestEntity,
+                    String.class);
+
+            return response.getBody();
+        }catch (Exception e){
             throw new ErrorDataServiceException("Error al agregar el administrador");
         }
-        response.getBody();
     }
 
     @Override
@@ -54,10 +58,7 @@ public class IntegrationService implements IIntegrationService {
 
     @Override
     public Role getRole(String username) throws ErrorDataServiceException {
-
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(urlData + "/rol/get/user")
-                .queryParam("username", username);
-        ResponseEntity<Role> response = restTemplate.getForEntity(builder.toUriString(), Role.class);
+        ResponseEntity<Role> response = restTemplate.getForEntity(urlData + "/rol/get/user?username="+username, Role.class);
         if (response.getStatusCode().is4xxClientError() || response.getStatusCode().is5xxServerError()) {
            throw new ErrorDataServiceException("Error al obtener el rol del usuario");
         }

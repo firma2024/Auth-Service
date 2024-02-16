@@ -8,7 +8,7 @@ import com.firma.auth.dto.response.TokenResponse;
 import com.firma.auth.dto.response.UserResponse;
 import com.firma.auth.exception.ErrorDataServiceException;
 import com.firma.auth.security.KeycloakSecurityUtil;
-import com.firma.auth.service.intf.IIntegrationService;
+import com.firma.auth.service.intf.ILogicService;
 import com.firma.auth.service.intf.IKeycloakService;
 import com.firma.auth.tool.ObjectToUrlEncodedConverter;
 import jakarta.ws.rs.core.Response;
@@ -37,7 +37,7 @@ import static java.util.Collections.singletonList;
  * the password recovery and the deletion of accounts.
  * @see IKeycloakService
  * @see KeycloakSecurityUtil
- * @see IIntegrationService
+ * @see ILogicService
  * @see UserRequest
  * @see UserResponse
  * @see Role
@@ -48,7 +48,7 @@ import static java.util.Collections.singletonList;
 @Service
 public class KeycloakService implements IKeycloakService {
 
-    @Value("${server-url}")
+    @Value("${authServerUrl-url}")
     private  String authServerUrl;
 
     @Value("${realm}")
@@ -63,12 +63,12 @@ public class KeycloakService implements IKeycloakService {
     @Value("${keycloak.credentials.secret}")
     private  String clientSecret;
     KeycloakSecurityUtil keycloakUtil;
-    private final IIntegrationService dataService;
+    private final ILogicService logicService;
 
     @Autowired
-    public KeycloakService(KeycloakSecurityUtil keycloakUtil, IIntegrationService dataService) {
+    public KeycloakService(KeycloakSecurityUtil keycloakUtil, ILogicService logicService) {
         this.keycloakUtil = keycloakUtil;
-        this.dataService = dataService;
+        this.logicService = logicService;
     }
 
     /**
@@ -78,6 +78,7 @@ public class KeycloakService implements IKeycloakService {
      * @throws ErrorDataServiceException Excepción en caso de error en el servicio de datos.
      * @return ResponseEntity con el usuario creado.
      */
+
     @Override
     public ResponseEntity<?> createUserWithRole(@RequestBody UserRequest user, String role) throws ErrorDataServiceException {
         Keycloak keycloak = keycloakUtil.getKeycloakInstance();
@@ -106,9 +107,9 @@ public class KeycloakService implements IKeycloakService {
                     .build();
 
             switch (role) {
-                case "ADMIN" -> dataService.addAdmin(userResponse);
-                case "ABOGADO" -> dataService.addAbogado(userResponse);
-                case "JEFE" -> dataService.addJefe(userResponse);
+                case "ADMIN" -> logicService.addAdmin(userResponse);
+                case "ABOGADO" -> logicService.addAbogado(userResponse);
+                case "JEFE" -> logicService.addJefe(userResponse);
             }
             return ResponseEntity.status(HttpStatus.CREATED).body(user);
         } else {
@@ -199,8 +200,7 @@ public class KeycloakService implements IKeycloakService {
         Map responseMap = responseEntity.getBody();
         assert responseMap != null;
 
-        Role role = dataService.getRole(request.getUsername());
-
+        Role role = logicService.getRole(request.getUsername());
 
         return TokenResponse.builder()
                 .access_token((String) responseMap.get("access_token"))

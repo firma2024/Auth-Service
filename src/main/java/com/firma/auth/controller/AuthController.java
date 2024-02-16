@@ -23,6 +23,7 @@ public class AuthController {
     public AuthController(KeycloakService keycloakService) {
         this.keycloakService = keycloakService;
     }
+
     @PostMapping("/login")
     public ResponseEntity<?> getAccessToken(@RequestBody AuthenticationRequest request) {
 
@@ -39,7 +40,7 @@ public class AuthController {
         keycloakService.forgotPassword(username);
     }
 
-    @PostMapping(value = "/admin")
+    @PostMapping( "/admin")
     public ResponseEntity<?> createAdmin(@RequestBody UserRequest userRequest) {
         try {
             return keycloakService.createUserWithRole(userRequest, "ADMIN");
@@ -48,7 +49,7 @@ public class AuthController {
         }
     }
 
-    @PostMapping(value = "/abogado")
+    @PostMapping( "/abogado")
     @PreAuthorize("hasAnyAuthority('ADMIN' ,'JEFE')")
     public ResponseEntity<?> createAbogado(@RequestBody UserRequest userRequest) {
         try {
@@ -58,7 +59,7 @@ public class AuthController {
         }
     }
 
-    @PostMapping(value = "/jefe")
+    @PostMapping("/jefe")
     @PreAuthorize("hasAnyAuthority('ADMIN')")
     public ResponseEntity<?> createJefe(@RequestBody UserRequest userRequest) {
         try {
@@ -66,11 +67,6 @@ public class AuthController {
         } catch (ErrorDataServiceException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
-    }
-    @GetMapping(value = "/hola")
-    @PreAuthorize("hasAnyAuthority('JEFE')")
-    public ResponseEntity<?> hola() {
-        return ResponseEntity.status(HttpStatus.OK).body("Hola");
     }
 
     @DeleteMapping(value = "/users/{id}")
