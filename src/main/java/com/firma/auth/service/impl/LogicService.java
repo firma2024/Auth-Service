@@ -30,38 +30,59 @@ public class LogicService implements ILogicService {
                     HttpMethod.POST,
                     requestEntity,
                     String.class);
-
             return response.getBody();
         }catch (Exception e){
             throw new ErrorDataServiceException("Error al agregar el administrador");
         }
     }
-
     @Override
-    public void addAbogado(UserResponse user) throws ErrorDataServiceException {
-
-        ResponseEntity<String> response = restTemplate.postForEntity(urlData + "/add/abogado", user, String.class);
-        if (response.getStatusCode().is4xxClientError() || response.getStatusCode().is5xxServerError()) {
-            throw new ErrorDataServiceException("Error al agregar el abogado");
+    public String addJefe(UserResponse user) throws ErrorDataServiceException {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<UserResponse> requestEntity = new HttpEntity<>(user, headers);
+            ResponseEntity<String> response = restTemplate.exchange(
+                    urlData + "/add/jefe",
+                    HttpMethod.POST,
+                    requestEntity,
+                    String.class);
+            return response.getBody();
+        }catch (Exception e){
+            throw new ErrorDataServiceException("Error al agregar el jefe");
         }
-        response.getBody();
     }
 
     @Override
-    public void addJefe(UserResponse user) throws ErrorDataServiceException {
-        ResponseEntity<String> response = restTemplate.postForEntity(urlData + "/add/jefe", user, String.class);
-        if (response.getStatusCode().is4xxClientError() || response.getStatusCode().is5xxServerError()) {
-            throw new ErrorDataServiceException("Error al agregar el jefe");
+    public String addAbogado(UserResponse user) throws ErrorDataServiceException {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<UserResponse> requestEntity = new HttpEntity<>(user, headers);
+            ResponseEntity<String> response = restTemplate.exchange(
+                    urlData + "/add/abogado",
+                    HttpMethod.POST,
+                    requestEntity,
+                    String.class);
+            return response.getBody();
+        }catch (Exception e){
+            throw new ErrorDataServiceException("Error al agregar el abogado");
         }
-        response.getBody();
     }
 
     @Override
     public Role getRole(String username) throws ErrorDataServiceException {
-        ResponseEntity<Role> response = restTemplate.getForEntity(urlData + "/rol/get/user?username="+username, Role.class);
-        if (response.getStatusCode().is4xxClientError() || response.getStatusCode().is5xxServerError()) {
-           throw new ErrorDataServiceException("Error al obtener el rol del usuario");
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Role> requestEntity = new HttpEntity<>(headers);
+            ResponseEntity<Role> response = restTemplate.exchange(
+                    urlData + "/rol/get/user?username="+username,
+                    HttpMethod.GET,
+                    requestEntity,
+                    Role.class);
+            return response.getBody();
+        }catch (Exception e){
+            throw new ErrorDataServiceException("Error al obtener el rol del usuario");
         }
-        return response.getBody();
     }
 }

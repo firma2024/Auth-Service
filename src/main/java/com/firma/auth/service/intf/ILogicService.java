@@ -9,9 +9,9 @@ public interface ILogicService {
 
     String addAdmin(UserResponse user) throws ErrorDataServiceException;
 
-    void addAbogado(UserResponse user) throws ErrorDataServiceException;
+    String addAbogado(UserResponse user) throws ErrorDataServiceException;
 
-    void addJefe(UserResponse user) throws ErrorDataServiceException;
+    String addJefe(UserResponse user) throws ErrorDataServiceException;
 
     Role getRole(String username) throws ErrorDataServiceException;
 }

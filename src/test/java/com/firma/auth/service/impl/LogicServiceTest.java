@@ -3,17 +3,16 @@ package com.firma.auth.service.impl;
 import com.firma.auth.dto.Role;
 import com.firma.auth.dto.response.UserResponse;
 import com.firma.auth.exception.ErrorDataServiceException;
-import com.firma.auth.security.KeycloakSecurityUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.keycloak.admin.client.Keycloak;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -32,8 +31,8 @@ class LogicServiceTest {
 
 
     @Test
-    public void testAddAdminSuccessfully() throws ErrorDataServiceException {
-        // Given
+    public void testAddAdminSuccess() throws ErrorDataServiceException {
+
         UserResponse user = new UserResponse();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -41,40 +40,92 @@ class LogicServiceTest {
         ResponseEntity<String> responseEntity = ResponseEntity.ok("Admin added successfully");
         when(restTemplate.exchange(any(String.class), eq(HttpMethod.POST), eq(requestEntity), eq(String.class)))
                 .thenReturn(responseEntity);
-        // When
         String result = logicService.addAdmin(user);
         assertEquals("Admin added successfully", result);
     }
+
     @Test
     public void testAddAdminThrowsException() {
-        // Given
+
         UserResponse user = new UserResponse();
         when(restTemplate.exchange(any(String.class), eq(HttpMethod.POST), any(HttpEntity.class), eq(String .class)))
                 .thenThrow(new RuntimeException("Error occurred"));
-        // When/Then
+
         assertThrows(ErrorDataServiceException.class, () -> logicService.addAdmin(user));
     }
 
+
     @Test
-    public void testAddAbogado_Success() {
-        // Misma lógica que testAddAdmin_Success pero para addAbogado
+    public void testAddJefeSuccess() throws ErrorDataServiceException {
+
+        UserResponse user = new UserResponse();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<UserResponse> requestEntity = new HttpEntity<>(user, headers);
+        ResponseEntity<String> responseEntity = ResponseEntity.ok("Jefe added successfully");
+        when(restTemplate.exchange(any(String.class), eq(HttpMethod.POST), eq(requestEntity), eq(String.class)))
+                .thenReturn(responseEntity);
+        String result = logicService.addJefe(user);
+        assertEquals("Jefe added successfully", result);
     }
 
     @Test
-    public void testAddAbogado_Error() {
-        // Misma lógica que testAddAdmin_Error pero para addAbogado
+    public void testAddJefeThrowsException() {
+
+        UserResponse user = new UserResponse();
+        when(restTemplate.exchange(any(String.class), eq(HttpMethod.POST), any(HttpEntity.class), eq(String .class)))
+                .thenThrow(new RuntimeException("Error occurred"));
+        assertThrows(ErrorDataServiceException.class, () -> logicService.addJefe(user));
     }
 
     @Test
-    public void testAddJefe_Success() throws ErrorDataServiceException {
-        // Misma lógica que testAddAdmin_Success pero para addJefe
+    public void testAddAbogadoSuccess() throws ErrorDataServiceException {
+
+        UserResponse user = new UserResponse();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<UserResponse> requestEntity = new HttpEntity<>(user, headers);
+        ResponseEntity<String> responseEntity = ResponseEntity.ok("Abogado added successfully");
+        when(restTemplate.exchange(any(String.class), eq(HttpMethod.POST), eq(requestEntity), eq(String.class)))
+                .thenReturn(responseEntity);
+        String result = logicService.addAbogado(user);
+        assertEquals("Abogado added successfully", result);
+
+    }
+    @Test
+    public void testAddAbogadoThrowsException() {
+        UserResponse user = new UserResponse();
+        when(restTemplate.exchange(any(String.class), eq(HttpMethod.POST), any(HttpEntity.class), eq(String .class)))
+                .thenThrow(new RuntimeException("Error occurred"));
+        assertThrows(ErrorDataServiceException.class, () -> logicService.addAbogado(user));
     }
 
     @Test
-    public void testAddJefe_Error() {
-        // Misma lógica que testAddAdmin_Error pero para addJefe
-    }
+    public void testGetRoleSuccess() throws ErrorDataServiceException {
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+        Role role = new Role();
+        role.setNombre("ADMIN");
+        role.setId("1");
+
+        ResponseEntity<Role> responseEntity = ResponseEntity.ok(role);
+        when(restTemplate.exchange(any(String.class), eq(HttpMethod.GET), eq(requestEntity), eq(Role.class))
+        ).thenReturn(responseEntity);
+
+        Role result = logicService.getRole("username");
+
+        assertEquals(role, result);
+    }
+    @Test
+    public void testGetRoleThrowsException() {
+
+        when(restTemplate.exchange(any(String.class), eq(HttpMethod.GET), any(HttpEntity.class), eq(Role.class))
+        ).thenThrow(new RuntimeException("Error occurred"));
+
+        assertThrows(ErrorDataServiceException.class, () -> logicService.getRole("username"));
+    }
 
 
 }
