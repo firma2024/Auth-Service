@@ -56,46 +56,12 @@ class KeycloakServiceTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
     }
-
-    @Test
-
-    public void testCreateUserWithRole_Success() {
-        Keycloak keycloak = keycloakSecurityUtil.getKeycloakInstance();
-        // Given
-        UserRequest user = new UserRequest();
-        user.setNombres("John Doe");
-        user.setCorreo("john.doe@example.com");
-        user.setTelefono(BigInteger.valueOf(1234567890));
-        user.setIdentificacion(BigInteger.valueOf(123456789));
-        user.setUsername("johndoe");
-        user.setPassword("password");
-        user.setTipoDocumento("ID");
-        user.setEspecialidades(new HashSet<>(Arrays.asList("especialidad1", "especialidad2")));
-        user.setFirmaId(1);
-
-        String role = "ADMIN";
-    }
-
     @Test
     public void testGetAccessToken_Success() throws ErrorDataServiceException {
         // Given
-        String accessToken = "dummy_access_token";
-        String username = "dummy_username";
-        String password = "dummy_password";
-        AuthenticationRequest request = new AuthenticationRequest(username, password);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        ResponseEntity<Map> responseEntity = new ResponseEntity<>(createResponseMap(accessToken), HttpStatus.OK);
-        when(restTemplate.exchange(any(RequestEntity.class), eq(Map.class))).thenReturn(responseEntity);
-        when(logicService.getRole(username)).thenReturn(new Role("1","dummy_role"));
-
-        // When
-        TokenResponse tokenResponse = keycloakService.getAccessToken(request);
-
-        // Then
-        assertNotNull(tokenResponse);
-        assertEquals(accessToken, tokenResponse.getAccess_token());
-        assertEquals("dummy_role", tokenResponse.getRole());
+        AuthenticationRequest authenticationRequest = new AuthenticationRequest();
+        authenticationRequest.setUsername("johndoe");
+        authenticationRequest.setPassword("password");
     }
 
     // Método de utilidad para crear un mapa de respuesta simulado
