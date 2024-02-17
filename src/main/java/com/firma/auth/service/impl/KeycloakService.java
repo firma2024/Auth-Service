@@ -126,7 +126,7 @@ public class KeycloakService implements IKeycloakService {
 
     @Override
     public void forgotPassword(String username) {
-         UsersResource usersResource = keycloakUtil.getKeycloakInstance().realm(realm).users();
+        UsersResource usersResource = keycloakUtil.getKeycloakInstance().realm(realm).users();
         List<UserRepresentation> userRepresentations = keycloakUtil.getKeycloakInstance().realm(realm).users().search(username);
         UserRepresentation userRepresentation = userRepresentations.stream().findFirst().orElse(null);
         if (userRepresentation!= null){
@@ -200,11 +200,26 @@ public class KeycloakService implements IKeycloakService {
         Map responseMap = responseEntity.getBody();
         assert responseMap != null;
 
-        Role role = logicService.getRole(request.getUsername());
+        String role = getRole(request.getUsername());
 
         return TokenResponse.builder()
                 .access_token((String) responseMap.get("access_token"))
-                .role(role.getNombre())
+                .role(role)
                 .build();
+    }
+    public String getRole(String username) {
+        Keycloak keycloak = keycloakUtil.getKeycloakInstance();
+        String userId = keycloak.realm(realm).users().search(username).get(0).getId();
+        List<RoleRepresentation> roles = keycloak.realm(realm).users().get(userId).roles().realmLevel().listAll();
+        for (RoleRepresentation role : roles) {
+            if (role.getName().equals("ADMIN")) {
+                return "ADMIN";
+            } else if (role.getName().equals("ABOGADO")) {
+                return "ABOGADO";
+            } else if (role.getName().equals("JEFE")) {
+                return "JEFE";
+            }
+        }
+        return null;
     }
 }

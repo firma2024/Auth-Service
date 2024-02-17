@@ -28,6 +28,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
@@ -36,21 +37,7 @@ class KeycloakServiceTest {
     @InjectMocks
     KeycloakService keycloakService;
 
-    @Mock
-    private Keycloak keycloak;
 
-    @Mock
-    KeycloakSecurityUtil keycloakSecurityUtil;
-    @Mock
-    private RoleMappingResource roleMappingResource;
-
-    @Mock
-    private RolesResource rolesResource;
-
-    @Mock
-    LogicService logicService;
-    @Mock
-    private RestTemplate restTemplate;
 
     @BeforeEach
     void setUp() {
@@ -99,6 +86,15 @@ class KeycloakServiceTest {
         assertEquals(CredentialRepresentation.PASSWORD, credential.getType());
         assertTrue(credential.isTemporary());
         assertEquals(userRequest.getPassword(), credential.getValue());
+    }
+
+    @Test
+    public void forgotPasswordTest(){
+        // Given
+        String username = "johndoe";
+
+
+
     }
 
 
