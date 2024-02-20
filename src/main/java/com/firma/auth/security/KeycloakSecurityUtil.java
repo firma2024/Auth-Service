@@ -3,6 +3,7 @@ package com.firma.auth.security;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -11,7 +12,7 @@ import org.springframework.stereotype.Component;
  *
  */
 @Component
-public class KeycloakSecurityUtil {
+public class KeycloakSecurityUtil implements DisposableBean {
 
     private Keycloak keycloak;
     @Value("${authServerUrl-url}")
@@ -30,17 +31,28 @@ public class KeycloakSecurityUtil {
      *
      * @return Keycloak
      */
-    public Keycloak getKeycloakInstance() {
+    public synchronized Keycloak getKeycloakInstance() {
         if (keycloak == null) {
-            keycloak = KeycloakBuilder.builder()
-                    .serverUrl(authServerUrl)
-                    .realm(realm)
-                    .clientId(clientId)
-                    .grantType(OAuth2Constants.PASSWORD)
-                    .username(username)
-                    .password(password)
-                    .build();
+            try {
+                keycloak = KeycloakBuilder.builder()
+                        .serverUrl(authServerUrl)
+                        .realm(realm)
+                        .clientId(clientId)
+                        .grantType(OAuth2Constants.PASSWORD)
+                        .username(username)
+                        .password(password)
+                        .build();
+            } catch (Exception e) {
+                throw new RuntimeException("Error al crear la instancia de Keycloak", e);
+            }
         }
         return keycloak;
+    }
+
+    @Override
+    public void destroy() {
+        if (keycloak != null) {
+            keycloak.close();
+        }
     }
 }
