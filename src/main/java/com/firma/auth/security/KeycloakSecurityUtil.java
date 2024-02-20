@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 public class KeycloakSecurityUtil implements DisposableBean {
 
     private Keycloak keycloak;
-    @Value("${authServerUrl-url}")
+    @Value("${authServerUrl}")
     private String authServerUrl;
     @Value("${realm}")
     private String realm;

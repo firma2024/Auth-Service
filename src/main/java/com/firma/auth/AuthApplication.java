@@ -13,7 +13,7 @@ import org.springframework.web.client.RestTemplate;
 @EnableScheduling
 @SecurityScheme(
         name = "Keycloak"
-        , openIdConnectUrl = "${authServerUrl-url}/realms/${realm}/.well-known/openid-configuration"
+        , openIdConnectUrl = "${authServerUrl}/realms/${realm}/.well-known/openid-configuration"
         , scheme = "bearer"
         , type = SecuritySchemeType.OPENIDCONNECT
         , in = SecuritySchemeIn.HEADER

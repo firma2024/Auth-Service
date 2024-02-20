@@ -14,7 +14,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/auth/")
+@RequestMapping("/api/auth")
 @SecurityRequirement(name = "Keycloak")
 public class AuthController {
     private final KeycloakService keycloakService;
@@ -26,12 +26,11 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> getAccessToken(@RequestBody AuthenticationRequest request) {
-
         try {
             TokenResponse token = keycloakService.getAccessToken(request);
             return new ResponseEntity<>(token, HttpStatus.OK);
         } catch (ErrorDataServiceException e) {
-            return new ResponseEntity<>(e,HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Error al obtener el token de acceso",HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -73,9 +72,9 @@ public class AuthController {
     @PreAuthorize("hasAnyAuthority('ADMIN')")
     public ResponseEntity<?> deleteUser(@PathVariable("id") String id) {
         try {
-           if (keycloakService.deleteAccount(id))
-               return ResponseEntity.status(HttpStatus.OK).body("User deleted");
-           else return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            if (keycloakService.deleteAccount(id))
+                return ResponseEntity.status(HttpStatus.OK).body("User deleted");
+            else return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
