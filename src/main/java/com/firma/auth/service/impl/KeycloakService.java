@@ -27,10 +27,8 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.client.RestTemplate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+
+import java.util.*;
 
 import static java.util.Collections.singletonList;
 
@@ -149,14 +147,20 @@ public class KeycloakService implements IKeycloakService {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
     }
 
+    /**
+     * Método para desabilitar una cuenta de usuario en Keycloak.
+     * @param userId id del usuario a desabilitar.
+     * @return true si la cuenta fue desabilitada, false en caso contrario.
+     */
+
     @Override
     public boolean deleteAccount(String userId) {
         Keycloak keycloak = keycloakUtil.getKeycloakInstance();
         try {
-            if (getUserById(userId) != null) {
-                keycloak.realm(realm).users().delete(userId);
-                return true;
-            } else return false;
+            UserRepresentation user = keycloak.realm(realm).users().get(userId).toRepresentation();
+            user.setEnabled(false);
+            keycloak.realm(realm).users().get(userId).update(user);
+            return true;
         } catch (Exception e) {
             return false;
         }
