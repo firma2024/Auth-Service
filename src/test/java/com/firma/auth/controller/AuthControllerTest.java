@@ -8,7 +8,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -41,18 +45,19 @@ class AuthControllerTest {
     void getAccessTokenSuccess() throws Exception {
         AuthenticationRequest request = createAuthenticationRequestSuccess();
         MvcResult result = mockMvc.perform(post(AuthURL + "/login").
-                accept(MediaType.APPLICATION_JSON_VALUE)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(mapToJson(request)))
+                        accept(MediaType.APPLICATION_JSON_VALUE)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(mapToJson(request)))
                 .andReturn();
         assertEquals(200, result.getResponse().getStatus());
     }
+
     @Test
     void getAccessTokenFail() throws Exception {
         AuthenticationRequest request = createAuthenticationRequestFail();
         MvcResult result = mockMvc.perform(post(AuthURL + "/login")
-                        .contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .content(mapToJson(request))).andReturn();
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(mapToJson(request))).andReturn();
         assertEquals(400, result.getResponse().getStatus());
     }
 
@@ -62,47 +67,98 @@ class AuthControllerTest {
         MvcResult result = mockMvc.perform(post(AuthURL + "/{username}/forgot-password", username)).andReturn();
         assertEquals(200, result.getResponse().getStatus());
     }
+
     @Test
     void testForgotPasswordFail() throws Exception {
         String username = "user";
         MvcResult result = mockMvc.perform(post(AuthURL + "/{username}/forgot-password", username)).andReturn();
         assertEquals(404, result.getResponse().getStatus());
     }
+
     @Test
     void testCreateAdminSuccess() throws Exception {
-        UserRequest userRequest = createUserRequestSuccess();
-            MvcResult result = mockMvc.perform(post(AuthURL + "/admin")
-                    .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content(mapToJson(userRequest))).andReturn();
-            assertEquals(201, result.getResponse().getStatus());
+        UserRequest userRequest = createAdminSuccess();
+        MvcResult result = mockMvc.perform(post(AuthURL + "/admin")
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(mapToJson(userRequest))).andReturn();
+        assertEquals(201, result.getResponse().getStatus());
     }
+
     @Test
     void testCreateAdminFail() throws Exception {
-        UserRequest userRequest = createUserRequestFail();
+        UserRequest userRequest = createAdminFail();
         MvcResult result = mockMvc.perform(post(AuthURL + "/admin")
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(mapToJson(userRequest))).andReturn();
         assertEquals(400, result.getResponse().getStatus());
+    }
+    @Test
+    void testCreateJefeSuccess() throws Exception {
+        UserRequest userRequest = createJefeSuccess();
+        UsernamePasswordAuthenticationToken principal =
+                new UsernamePasswordAuthenticationToken("username", "password", AuthorityUtils.createAuthorityList("ADMIN"));
+        SecurityContextHolder.getContext().setAuthentication(principal);
+        MvcResult result = mockMvc.perform(post(AuthURL + "/jefe")
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(mapToJson(userRequest))).andReturn();
+        assertEquals(HttpStatus.CREATED.value(), result.getResponse().getStatus());
+    }
+    @Test
+    void testCreateJefeFail() throws Exception {
+        UserRequest userRequest = CreateJefeFail();
+        UsernamePasswordAuthenticationToken principal =
+                new UsernamePasswordAuthenticationToken("username", "password", AuthorityUtils.createAuthorityList("ADMIN"));
+        SecurityContextHolder.getContext().setAuthentication(principal);
+        MvcResult result = mockMvc.perform(post(AuthURL + "/jefe")
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(mapToJson(userRequest))).andReturn();
+        assertEquals(HttpStatus.BAD_REQUEST.value(), result.getResponse().getStatus());
+    }
+
+    @Test
+    void testCreateAbogadoSuccess() throws Exception {
+        UserRequest userRequest = CreateAbogadoSuccess();
+        UsernamePasswordAuthenticationToken principal =
+                new UsernamePasswordAuthenticationToken("username", "password", AuthorityUtils.createAuthorityList("ADMIN"));
+        SecurityContextHolder.getContext().setAuthentication(principal);
+        MvcResult result = mockMvc.perform(post(AuthURL + "/abogado")
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(mapToJson(userRequest))).andReturn();
+        assertEquals(HttpStatus.CREATED.value(), result.getResponse().getStatus());
+    }
+    @Test
+    void testCreateAbogadoFail() throws Exception {
+        UserRequest userRequest = CreateAbogadoFail();
+        UsernamePasswordAuthenticationToken principal =
+                new UsernamePasswordAuthenticationToken("username", "password", AuthorityUtils.createAuthorityList("ADMIN"));
+        SecurityContextHolder.getContext().setAuthentication(principal);
+        MvcResult result = mockMvc.perform(post(AuthURL + "/abogado")
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(mapToJson(userRequest))).andReturn();
+        assertEquals(HttpStatus.BAD_REQUEST.value(), result.getResponse().getStatus());
     }
 
     private String mapToJson(Object object) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
         return objectMapper.writeValueAsString(object);
     }
+
     private AuthenticationRequest createAuthenticationRequestFail() {
         String username = "user";
         String password = "1234567";
         return new AuthenticationRequest(username, password);
     }
+
     private AuthenticationRequest createAuthenticationRequestSuccess() {
         String username = "danibar";
         String password = "123456";
         return new AuthenticationRequest(username, password);
     }
-    private UserRequest createUserRequestSuccess() {
+
+    private UserRequest createAdminSuccess() {
         return UserRequest.builder()
                 .nombres("Daniel")
-                .correo("daniela@gmail.com")
+                .correo("santilopez0525@gmail.com")
                 .telefono(BigInteger.valueOf(0000000000))
                 .identificacion(BigInteger.valueOf(1111111111))
                 .username("daniebar")
@@ -112,7 +168,8 @@ class AuthControllerTest {
                 .firmaId(1)
                 .build();
     }
-    private UserRequest createUserRequestFail() {
+
+    private UserRequest createAdminFail() {
         return UserRequest.builder()
                 .nombres("Daniel")
                 .correo("daniela@gmail.com")
@@ -126,15 +183,59 @@ class AuthControllerTest {
                 .build();
     }
 
-    @Test
-    void testCreateAbogado() {
+    private UserRequest createJefeSuccess() {
+        return UserRequest.builder()
+                .nombres("Daniel")
+                .correo("koprada@javeriana.edu.co")
+                .telefono(BigInteger.valueOf(0000000002))
+                .identificacion(BigInteger.valueOf(1111111113))
+                .username("kevs")
+                .password("123456")
+                .tipoDocumento("Cedula de ciudadania")
+                .especialidades(Set.of("Civil"))
+                .firmaId(1)
+                .build();
     }
 
-    @Test
-    void testCreateJefe() {
+    private UserRequest CreateJefeFail() {
+        return UserRequest.builder()
+                .nombres("Daniel")
+                .correo("jd.paez@javeriana.edu.co")
+                .telefono(BigInteger.valueOf(0000000001))
+                .identificacion(BigInteger.valueOf(1111111112))
+                .username("daniel")
+                .password("123456")
+                .tipoDocumento("Cedula de ciudadania")
+                .especialidades(Set.of("Civil"))
+                .firmaId(1)
+                .build();
     }
 
-    @Test
-    void testDeleteUser() {
+
+    private UserRequest CreateAbogadoSuccess() {
+        return UserRequest.builder()
+                .nombres("Daniel")
+                .correo("carlosdesilvestrir@javeriana.edu.co")
+                .telefono(BigInteger.valueOf(0000000001))
+                .identificacion(BigInteger.valueOf(1111111112))
+                .username("daniel")
+                .password("123456")
+                .tipoDocumento("Cedula de ciudadania")
+                .especialidades(Set.of("Civil"))
+                .firmaId(1)
+                .build();
+    }
+    private UserRequest CreateAbogadoFail() {
+        return UserRequest.builder()
+                .nombres("Daniel")
+                .correo("carlosdesilvestrir@javeriana.edu.co")
+                .telefono(BigInteger.valueOf(0000000001))
+                .identificacion(BigInteger.valueOf(1111111112))
+                .username("daniel")
+                .password("123456")
+                .tipoDocumento("Cedula de ciudadania")
+                .especialidades(Set.of("Civil"))
+                .firmaId(1)
+                .build();
     }
 }

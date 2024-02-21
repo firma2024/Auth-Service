@@ -36,40 +36,43 @@ public class AuthController {
 
     @PostMapping("/{username}/forgot-password")
     public ResponseEntity<?> forgotPassword(@PathVariable String username) throws ErrorDataServiceException {
-            ResponseEntity<?> response = keycloakService.forgotPassword(username);
-            if (response.getStatusCode().is2xxSuccessful()) {
-                return ResponseEntity.status(HttpStatus.OK).body("Password reset email sent");
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error sending email");
-            }
-    }
-
-    @PostMapping( "/admin")
-    public ResponseEntity<?> createAdmin(@RequestBody UserRequest userRequest) {
-        try {
-            return keycloakService.createUserWithRole(userRequest, "ADMIN");
-        } catch (ErrorDataServiceException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        ResponseEntity<?> response = keycloakService.forgotPassword(username);
+        if (response.getStatusCode().is2xxSuccessful()) {
+            return ResponseEntity.status(HttpStatus.OK).body("Password reset email sent");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error sending email");
         }
     }
 
-    @PostMapping( "/abogado")
-    @PreAuthorize("hasAnyAuthority('ADMIN' ,'JEFE')")
-    public ResponseEntity<?> createAbogado(@RequestBody UserRequest userRequest) {
-        try {
-            return keycloakService.createUserWithRole(userRequest, "ABOGADO");
-        } catch (ErrorDataServiceException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+    @PostMapping("/admin")
+    public ResponseEntity<?> createAdmin(@RequestBody UserRequest userRequest) throws ErrorDataServiceException {
+        ResponseEntity<?> response = keycloakService.createUserWithRole(userRequest, "ADMIN");
+        if (response.getStatusCode().is2xxSuccessful()) {
+            return ResponseEntity.status(HttpStatus.CREATED).body("Admin created");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error creating admin");
         }
     }
 
     @PostMapping("/jefe")
     @PreAuthorize("hasAnyAuthority('ADMIN')")
-    public ResponseEntity<?> createJefe(@RequestBody UserRequest userRequest) {
-        try {
-            return keycloakService.createUserWithRole(userRequest, "JEFE");
-        } catch (ErrorDataServiceException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+    public ResponseEntity<?> createJefe(@RequestBody UserRequest userRequest) throws ErrorDataServiceException {
+        ResponseEntity<?> response = keycloakService.createUserWithRole(userRequest , "JEFE");
+        if (response.getStatusCode().is2xxSuccessful()) {
+            return ResponseEntity.status(HttpStatus.CREATED).body("Jefe created");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error creating jefe");
+        }
+    }
+
+    @PostMapping("/abogado")
+    @PreAuthorize("hasAnyAuthority('ADMIN' ,'JEFE')")
+    public ResponseEntity<?> createAbogado(@RequestBody UserRequest userRequest) throws ErrorDataServiceException {
+        ResponseEntity<?> response = keycloakService.createUserWithRole(userRequest, "ABOGADO");
+        if (response.getStatusCode().is2xxSuccessful()) {
+            return ResponseEntity.status(HttpStatus.CREATED).body("Abogado created");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error creating abogado");
         }
     }
 
