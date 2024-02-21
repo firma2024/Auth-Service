@@ -30,6 +30,8 @@ import org.springframework.web.client.RestTemplate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
 import static java.util.Collections.singletonList;
 
 /**
@@ -126,18 +128,25 @@ public class KeycloakService implements IKeycloakService {
     }
 
     @Override
-    public void forgotPassword(String username) {
-        UsersResource usersResource = keycloakUtil.getKeycloakInstance().realm(realm).users();
-        List<UserRepresentation> userRepresentations = keycloakUtil.getKeycloakInstance().realm(realm).users().search(username);
-        UserRepresentation userRepresentation = userRepresentations.stream().findFirst().orElse(null);
-        if (userRepresentation!= null){
-            UserResource userResource = usersResource.get(userRepresentation.getId());
-            List<String> actions = new ArrayList<>();
-            actions.add("UPDATE_PASSWORD");
-            userResource.executeActionsEmail(actions);
-            return;
+    public ResponseEntity<?> forgotPassword(String username) throws ErrorDataServiceException {
+        try {
+            UsersResource usersResource = keycloakUtil.getKeycloakInstance().realm(realm).users();
+
+            List<UserRepresentation> userRepresentations = usersResource.search(username);
+            Optional<UserRepresentation> userOptional = userRepresentations.stream().findFirst();
+
+            if (userOptional.isPresent()) {
+                UserRepresentation userRepresentation = userOptional.get();
+                UserResource userResource = usersResource.get(userRepresentation.getId());
+                List<String> actions = new ArrayList<>();
+                actions.add("UPDATE_PASSWORD");
+                userResource.executeActionsEmail(actions);
+                return ResponseEntity.status(HttpStatus.OK).body("Correo de recuperación de contraseña enviado");
+            }
+        } catch (Exception e) {
+            throw new ErrorDataServiceException("Error al enviar el correo de recuperación de contraseña");
         }
-        throw new RuntimeException("User not found");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
     }
 
     @Override

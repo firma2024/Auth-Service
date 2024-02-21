@@ -30,13 +30,18 @@ public class AuthController {
             TokenResponse token = keycloakService.getAccessToken(request);
             return new ResponseEntity<>(token, HttpStatus.OK);
         } catch (ErrorDataServiceException e) {
-            return new ResponseEntity<>("Error al obtener el token de acceso",HttpStatus.BAD_REQUEST);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
     @PostMapping("/{username}/forgot-password")
-    public void forgotPassword(@PathVariable String username) {
-        keycloakService.forgotPassword(username);
+    public ResponseEntity<?> forgotPassword(@PathVariable String username) throws ErrorDataServiceException {
+            ResponseEntity<?> response = keycloakService.forgotPassword(username);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                return ResponseEntity.status(HttpStatus.OK).body("Password reset email sent");
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error sending email");
+            }
     }
 
     @PostMapping( "/admin")
