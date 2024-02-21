@@ -7,6 +7,7 @@ import com.firma.auth.dto.response.TokenResponse;
 import com.firma.auth.exception.ErrorDataServiceException;
 import com.firma.auth.service.impl.KeycloakService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +56,7 @@ public class AuthController {
     @Operation(summary = "Restaurar contraseña", description = "Envia un correo para restaurar la contraseña")
     @ApiResponse(responseCode = "200", description = "Correo enviado")
     @ApiResponse(responseCode = "404", description = "Error al enviar el correo")
+    @Parameter(name = "username", description = "Nombre de usuario", required = true)
     @PostMapping("/{username}/forgot-password")
     public ResponseEntity<?> forgotPassword(@PathVariable String username) throws ErrorDataServiceException {
         ResponseEntity<?> response = keycloakService.forgotPassword(username);
@@ -136,6 +138,7 @@ public class AuthController {
     @Operation(summary = "Desabilitar un usuario", description = "Desabilita un usuario")
     @ApiResponse(responseCode = "200", description = "Usuario desabilitado")
     @ApiResponse(responseCode = "404", description = "Error al desabilitar el usuario")
+    @Parameter(name = "id", description = "Identificador del usuario", required = true)
     @PreAuthorize("hasAnyAuthority('ADMIN')")
     @DeleteMapping(value = "/users/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable("id") String id) {
