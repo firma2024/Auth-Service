@@ -41,6 +41,11 @@ class AuthControllerTest {
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
     }
 
+    /**
+     * Test the getAccessToken method
+     * @throws Exception if the request is not successful
+     */
+
     @Test
     void getAccessTokenSuccess() throws Exception {
         AuthenticationRequest request = createAuthenticationRequestSuccess();
@@ -52,6 +57,11 @@ class AuthControllerTest {
         assertEquals(200, result.getResponse().getStatus());
     }
 
+    /**
+     * Test the getAccessToken method but the request needs to fail
+     * @throws Exception if the request is not successful
+     */
+
     @Test
     void getAccessTokenFail() throws Exception {
         AuthenticationRequest request = createAuthenticationRequestFail();
@@ -61,6 +71,11 @@ class AuthControllerTest {
         assertEquals(400, result.getResponse().getStatus());
     }
 
+    /**
+     * Test the forgotPassword method
+     * @throws Exception if the request is not successful
+     */
+
     @Test
     void testForgotPasswordSuccess() throws Exception {
         String username = "danibar";
@@ -68,12 +83,22 @@ class AuthControllerTest {
         assertEquals(200, result.getResponse().getStatus());
     }
 
+    /**
+     * Test the forgotPassword method but the request needs to fail
+     * @throws Exception if the request is not successful
+     */
+
     @Test
     void testForgotPasswordFail() throws Exception {
         String username = "user";
         MvcResult result = mockMvc.perform(post(AuthURL + "/{username}/forgot-password", username)).andReturn();
         assertEquals(404, result.getResponse().getStatus());
     }
+
+    /**
+     * Test the createAdmin method
+     * @throws Exception if the request is not successful
+     */
 
     @Test
     void testCreateAdminSuccess() throws Exception {
@@ -84,6 +109,11 @@ class AuthControllerTest {
         assertEquals(201, result.getResponse().getStatus());
     }
 
+    /**
+     * Test the createAdmin method but the request needs to fail
+     * @throws Exception if the request is not successful
+     */
+
     @Test
     void testCreateAdminFail() throws Exception {
         UserRequest userRequest = createAdminFail();
@@ -92,6 +122,11 @@ class AuthControllerTest {
                 .content(mapToJson(userRequest))).andReturn();
         assertEquals(400, result.getResponse().getStatus());
     }
+
+    /**
+     * Test the createJefe method
+     * @throws Exception if the request is not successful
+     */
     @Test
     void testCreateJefeSuccess() throws Exception {
         UserRequest userRequest = createJefeSuccess();
@@ -103,6 +138,11 @@ class AuthControllerTest {
                 .content(mapToJson(userRequest))).andReturn();
         assertEquals(HttpStatus.CREATED.value(), result.getResponse().getStatus());
     }
+
+    /**
+     * Test the createJefe method but the request needs to fail
+     * @throws Exception if the request is not successful
+     */
     @Test
     void testCreateJefeFail() throws Exception {
         UserRequest userRequest = CreateJefeFail();
@@ -114,6 +154,10 @@ class AuthControllerTest {
                 .content(mapToJson(userRequest))).andReturn();
         assertEquals(HttpStatus.BAD_REQUEST.value(), result.getResponse().getStatus());
     }
+    /**
+     * Test the createAbogado method
+     * @throws Exception if the request is not successful
+     */
 
     @Test
     void testCreateAbogadoSuccess() throws Exception {
@@ -126,6 +170,12 @@ class AuthControllerTest {
                 .content(mapToJson(userRequest))).andReturn();
         assertEquals(HttpStatus.CREATED.value(), result.getResponse().getStatus());
     }
+
+    /**
+     * Test the createAbogado method but the request needs to fail
+     * @throws Exception if the request is not successful
+     */
+
     @Test
     void testCreateAbogadoFail() throws Exception {
         UserRequest userRequest = CreateAbogadoFail();
@@ -138,16 +188,22 @@ class AuthControllerTest {
         assertEquals(HttpStatus.BAD_REQUEST.value(), result.getResponse().getStatus());
     }
 
+    /**
+     *
+     * @param object to be converted to json
+     * @return the object in json format
+     * @throws JsonProcessingException if the object cannot be converted to json
+     */
+
     private String mapToJson(Object object) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
         return objectMapper.writeValueAsString(object);
     }
 
-    private AuthenticationRequest createAuthenticationRequestFail() {
-        String username = "user";
-        String password = "1234567";
-        return new AuthenticationRequest(username, password);
-    }
+    /**
+     * Create an AuthenticationRequest object with the necessary fields to succeed
+     * @return the AuthenticationRequest object
+     */
 
     private AuthenticationRequest createAuthenticationRequestSuccess() {
         String username = "danibar";
@@ -155,11 +211,27 @@ class AuthControllerTest {
         return new AuthenticationRequest(username, password);
     }
 
+    /**
+     * Create an AuthenticationRequest object with the necessary fields to fail
+     * @return the AuthenticationRequest object
+     */
+
+    private AuthenticationRequest createAuthenticationRequestFail() {
+        String username = "user";
+        String password = "1234567";
+        return new AuthenticationRequest(username, password);
+    }
+
+    /**
+     * Create a UserRequest admin object with the necessary fields to succeed
+     * @return the UserRequest admin object
+     */
+
     private UserRequest createAdminSuccess() {
         return UserRequest.builder()
                 .nombres("Daniel")
                 .correo("santilopez0525@gmail.com")
-                .telefono(BigInteger.valueOf(0000000000))
+                .telefono(BigInteger.valueOf(0))
                 .identificacion(BigInteger.valueOf(1111111111))
                 .username("daniebar")
                 .password("123456")
@@ -169,11 +241,16 @@ class AuthControllerTest {
                 .build();
     }
 
+    /**
+     * Create a UserRequest admin object with the necessary fields to fail
+     * @return the UserRequest admin object
+     */
+
     private UserRequest createAdminFail() {
         return UserRequest.builder()
                 .nombres("Daniel")
                 .correo("daniela@gmail.com")
-                .telefono(BigInteger.valueOf(0000000000))
+                .telefono(BigInteger.valueOf(0))
                 .identificacion(BigInteger.valueOf(1111111111))
                 .username("danibar") //username already exists
                 .password("123456")
@@ -183,11 +260,16 @@ class AuthControllerTest {
                 .build();
     }
 
+    /**
+     * Create a UserRequest jefe object with the necessary fields to succeed
+     * @return the UserRequest jefe object
+     */
+
     private UserRequest createJefeSuccess() {
         return UserRequest.builder()
                 .nombres("Daniel")
                 .correo("koprada@javeriana.edu.co")
-                .telefono(BigInteger.valueOf(0000000002))
+                .telefono(BigInteger.valueOf(2))
                 .identificacion(BigInteger.valueOf(1111111113))
                 .username("kevs")
                 .password("123456")
@@ -197,11 +279,16 @@ class AuthControllerTest {
                 .build();
     }
 
+    /**
+     * Create a UserRequest jefe object with the necessary fields to fail
+     * @return the UserRequest jefe object
+     */
+
     private UserRequest CreateJefeFail() {
         return UserRequest.builder()
                 .nombres("Daniel")
                 .correo("jd.paez@javeriana.edu.co")
-                .telefono(BigInteger.valueOf(0000000001))
+                .telefono(BigInteger.valueOf(1))
                 .identificacion(BigInteger.valueOf(1111111112))
                 .username("daniel")
                 .password("123456")
@@ -211,12 +298,16 @@ class AuthControllerTest {
                 .build();
     }
 
+    /**
+     * Create a UserRequest abogado object with the necessary fields to succeed
+     * @return the UserRequest abogado object
+     */
 
     private UserRequest CreateAbogadoSuccess() {
         return UserRequest.builder()
                 .nombres("Daniel")
                 .correo("carlosdesilvestrir@javeriana.edu.co")
-                .telefono(BigInteger.valueOf(0000000001))
+                .telefono(BigInteger.valueOf(1))
                 .identificacion(BigInteger.valueOf(1111111112))
                 .username("daniel")
                 .password("123456")
@@ -225,11 +316,17 @@ class AuthControllerTest {
                 .firmaId(1)
                 .build();
     }
+
+    /**
+     * Create a UserRequest abogado object with the necessary fields to fail
+     * @return the UserRequest abogado object
+     */
+
     private UserRequest CreateAbogadoFail() {
         return UserRequest.builder()
                 .nombres("Daniel")
                 .correo("carlosdesilvestrir@javeriana.edu.co")
-                .telefono(BigInteger.valueOf(0000000001))
+                .telefono(BigInteger.valueOf(1))
                 .identificacion(BigInteger.valueOf(1111111112))
                 .username("daniel")
                 .password("123456")
