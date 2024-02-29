@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,6 +22,13 @@ import org.springframework.web.bind.annotation.*;
 @SecurityRequirement(name = "Keycloak")
 public class AuthController {
     private final KeycloakService keycloakService;
+
+    @Value("${api.rol.admin}")
+    private String adminRole;
+    @Value("${api.rol.jefe}")
+    private String jefeRole;
+    @Value("${api.rol.abogado}")
+    private String abogadoRole;
 
     @Autowired
     public AuthController(KeycloakService keycloakService) {
@@ -42,7 +50,7 @@ public class AuthController {
             TokenResponse token = keycloakService.getAccessToken(request);
             return new ResponseEntity<>(token, HttpStatus.OK);
         } catch (ErrorDataServiceException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
@@ -61,9 +69,9 @@ public class AuthController {
     public ResponseEntity<?> forgotPassword(@PathVariable String username) throws ErrorDataServiceException {
         ResponseEntity<?> response = keycloakService.forgotPassword(username);
         if (response.getStatusCode().is2xxSuccessful()) {
-            return ResponseEntity.status(HttpStatus.OK).body("Correo enviado");
+            return ResponseEntity.ok("Correo enviado");
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error al enviar el correo");
+            return ResponseEntity.notFound().build();
         }
     }
 
@@ -71,19 +79,18 @@ public class AuthController {
      * Este metodo permite crear un usuario con rol ADMIN
      * @param userRequest Datos del usuario a crear
      * @return Mensaje de confirmación ó mensaje de error
-     * @throws ErrorDataServiceException Error al crear el ADMIN
      */
 
     @Operation(summary = "Crear un usuario con rol ADMIN", description = "Crea un usuario con rol ADMIN")
     @ApiResponse(responseCode = "201", description = "Admin creado")
     @ApiResponse(responseCode = "400", description = "Error al crear el admin")
     @PostMapping("/admin")
-    public ResponseEntity<?> createAdmin(@RequestBody UserRequest userRequest) throws ErrorDataServiceException {
-        ResponseEntity<?> response = keycloakService.createUserWithRole(userRequest, "ADMIN");
+    public ResponseEntity<?> createAdmin(@RequestBody UserRequest userRequest) {
+        ResponseEntity<?> response = keycloakService.createUserWithRole(userRequest, adminRole);
         if (response.getStatusCode().is2xxSuccessful()) {
             return ResponseEntity.status(HttpStatus.CREATED).body("Admin creado");
         } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error al crear el admin");
+            return ResponseEntity.badRequest().body("Error creating admin");
         }
     }
 
@@ -91,7 +98,6 @@ public class AuthController {
      * Este metodo permite crear un usuario con rol JEFE
      * @param userRequest Datos del usuario a crear
      * @return Mensaje de confirmación ó mensaje de error
-     * @throws ErrorDataServiceException Error al crear el JEFE
      */
 
     @Operation(summary = "Crear un usuario con rol JEFE", description = "Crea un usuario con rol JEFE")
@@ -99,12 +105,12 @@ public class AuthController {
     @ApiResponse(responseCode = "400", description = "Error al crear el jefe")
     @PreAuthorize("hasAnyAuthority('ADMIN')")
     @PostMapping("/jefe")
-    public ResponseEntity<?> createJefe(@RequestBody UserRequest userRequest) throws ErrorDataServiceException {
-        ResponseEntity<?> response = keycloakService.createUserWithRole(userRequest , "JEFE");
+    public ResponseEntity<?> createJefe(@RequestBody UserRequest userRequest) {
+        ResponseEntity<?> response = keycloakService.createUserWithRole(userRequest , jefeRole);
         if (response.getStatusCode().is2xxSuccessful()) {
             return ResponseEntity.status(HttpStatus.CREATED).body("Jefe created");
         } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error creating jefe");
+            return ResponseEntity.badRequest().body("Error creating jefe");
         }
     }
 
@@ -112,7 +118,6 @@ public class AuthController {
      * Este metodo permite crear un usuario con rol ABOGADO
      * @param userRequest Datos del usuario a crear
      * @return Mensaje de confirmación ó mensaje de error
-     * @throws ErrorDataServiceException Error al crear el ABOGADO
      */
 
     @Operation(summary = "Crear un usuario con rol ABOGADO", description = "Crea un usuario con rol ABOGADO")
@@ -120,12 +125,12 @@ public class AuthController {
     @ApiResponse(responseCode = "400", description = "Error al crear el abogado")
     @PreAuthorize("hasAnyAuthority('ADMIN' ,'JEFE')")
     @PostMapping("/abogado")
-    public ResponseEntity<?> createAbogado(@RequestBody UserRequest userRequest) throws ErrorDataServiceException {
-        ResponseEntity<?> response = keycloakService.createUserWithRole(userRequest, "ABOGADO");
+    public ResponseEntity<?> createAbogado(@RequestBody UserRequest userRequest) {
+        ResponseEntity<?> response = keycloakService.createUserWithRole(userRequest, abogadoRole);
         if (response.getStatusCode().is2xxSuccessful()) {
             return ResponseEntity.status(HttpStatus.CREATED).body("Abogado created");
         } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error creating abogado");
+            return ResponseEntity.badRequest().body("Error creating abogado");
         }
     }
 
@@ -145,9 +150,9 @@ public class AuthController {
         try {
             if (keycloakService.deleteAccount(id))
                 return ResponseEntity.status(HttpStatus.OK).body("User deleted");
-            else return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            else return ResponseEntity.notFound().build();
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.internalServerError().build();
         }
     }
 }

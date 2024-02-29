@@ -1,4 +1,4 @@
-package com.firma.auth.dto;
+package com.firma.auth.model;
 
 import lombok.*;
 
@@ -7,7 +7,7 @@ import lombok.*;
 @NoArgsConstructor
 @Setter
 @Builder
-public class Role {
+public class Rol {
     private String id;
     private String nombre;
 }

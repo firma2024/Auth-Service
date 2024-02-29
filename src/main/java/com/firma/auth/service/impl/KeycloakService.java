@@ -1,14 +1,13 @@
 package com.firma.auth.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.firma.auth.dto.Role;
+import com.firma.auth.model.Rol;
 import com.firma.auth.dto.request.AuthenticationRequest;
 import com.firma.auth.dto.request.UserRequest;
 import com.firma.auth.dto.response.TokenResponse;
 import com.firma.auth.dto.response.UserResponse;
 import com.firma.auth.exception.ErrorDataServiceException;
 import com.firma.auth.security.KeycloakSecurityUtil;
-import com.firma.auth.service.intf.ILogicService;
 import com.firma.auth.service.intf.IKeycloakService;
 import com.firma.auth.tool.ObjectToUrlEncodedConverter;
 import jakarta.ws.rs.core.Response;
@@ -38,14 +37,14 @@ import static java.util.Collections.singletonList;
  * the password recovery and the deletion of accounts.
  * @see IKeycloakService
  * @see KeycloakSecurityUtil
- * @see ILogicService
  * @see UserRequest
  * @see UserResponse
- * @see Role
+ * @see Rol
  * @see TokenResponse
  * @see ErrorDataServiceException
  * @see AuthenticationRequest
  */
+
 @Service
 public class KeycloakService implements IKeycloakService {
 
@@ -64,24 +63,21 @@ public class KeycloakService implements IKeycloakService {
     @Value("${keycloak.credentials.secret}")
     private  String clientSecret;
     KeycloakSecurityUtil keycloakUtil;
-    private final ILogicService logicService;
 
     @Autowired
-    public KeycloakService(KeycloakSecurityUtil keycloakUtil, ILogicService logicService) {
+    public KeycloakService(KeycloakSecurityUtil keycloakUtil) {
         this.keycloakUtil = keycloakUtil;
-        this.logicService = logicService;
     }
 
     /**
      * Método para crear un usuario con un rol específico en Keycloak.
      * @param user Usuario a crear.
      * @param role Rol del usuario (ADMIN, ABOGADO, JEFE).
-     * @throws ErrorDataServiceException Excepción en caso de error en el servicio de datos.
      * @return ResponseEntity con el usuario creado.
      */
 
     @Override
-    public ResponseEntity<?> createUserWithRole(@RequestBody UserRequest user, String role) throws ErrorDataServiceException {
+    public ResponseEntity<?> createUserWithRole(@RequestBody UserRequest user, String role) {
         Keycloak keycloak = keycloakUtil.getKeycloakInstance();
         UserRepresentation userRep = mapUserRep(user);
         Response res = keycloak.realm(realm).users().create(userRep);
@@ -91,31 +87,12 @@ public class KeycloakService implements IKeycloakService {
             emailVerification(userRepresentation.getId());
             keycloak.realm(realm).users().get(userRepresentation.getId()).resetPassword(mapUserRep(user).getCredentials().get(0));
             String userId = keycloak.realm(realm).users().search(user.getUsername()).get(0).getId();
-
             RoleRepresentation Role = keycloak.realm(realm).roles().get(role).toRepresentation();
-
             keycloak.realm(realm).users().get(userId).roles().realmLevel().add(singletonList(Role));
-
-            UserResponse userResponse = UserResponse.builder()
-                    .nombres(user.getNombres())
-                    .correo(user.getCorreo())
-                    .telefono(user.getTelefono())
-                    .identificacion(user.getIdentificacion())
-                    .username(user.getUsername())
-                    .tipoDocumento(user.getTipoDocumento())
-                    .especialidades(user.getEspecialidades())
-                    .firmaId(user.getFirmaId())
-                    .build();
-
-            switch (role) {
-                case "ADMIN" -> logicService.addAdmin(userResponse);
-                case "ABOGADO" -> logicService.addAbogado(userResponse);
-                case "JEFE" -> logicService.addJefe(userResponse);
-            }
             return ResponseEntity.status(HttpStatus.CREATED).body(user);
         } else {
             String errorMessage = res.readEntity(String.class);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
+            return ResponseEntity.badRequest().body(errorMessage);
         }
     }
 
@@ -139,12 +116,12 @@ public class KeycloakService implements IKeycloakService {
                 List<String> actions = new ArrayList<>();
                 actions.add("UPDATE_PASSWORD");
                 userResource.executeActionsEmail(actions);
-                return ResponseEntity.status(HttpStatus.OK).body("Correo de recuperación de contraseña enviado");
+                return ResponseEntity.ok().build();
             }
         } catch (Exception e) {
             throw new ErrorDataServiceException("Error al enviar el correo de recuperación de contraseña");
         }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
+        return ResponseEntity.notFound().build();
     }
 
     /**
