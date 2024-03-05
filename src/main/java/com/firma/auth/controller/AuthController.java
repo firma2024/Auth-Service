@@ -3,6 +3,7 @@ package com.firma.auth.controller;
 
 import com.firma.auth.dto.request.AuthenticationRequest;
 import com.firma.auth.dto.request.UserRequest;
+import com.firma.auth.dto.response.MessageResponse;
 import com.firma.auth.dto.response.TokenResponse;
 import com.firma.auth.exception.ErrorDataServiceException;
 import com.firma.auth.service.impl.KeycloakService;
@@ -50,7 +51,7 @@ public class AuthController {
             TokenResponse token = keycloakService.getAccessToken(request);
             return new ResponseEntity<>(token, HttpStatus.OK);
         } catch (ErrorDataServiceException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
         }
     }
 
@@ -69,7 +70,7 @@ public class AuthController {
     public ResponseEntity<?> forgotPassword(@PathVariable String username) throws ErrorDataServiceException {
         ResponseEntity<?> response = keycloakService.forgotPassword(username);
         if (response.getStatusCode().is2xxSuccessful()) {
-            return ResponseEntity.ok("Correo enviado");
+            return ResponseEntity.ok(new MessageResponse("Correo enviado"));
         } else {
             return ResponseEntity.notFound().build();
         }
@@ -108,9 +109,9 @@ public class AuthController {
     public ResponseEntity<?> createJefe(@RequestBody UserRequest userRequest) {
         ResponseEntity<?> response = keycloakService.createUserWithRole(userRequest , jefeRole);
         if (response.getStatusCode().is2xxSuccessful()) {
-            return ResponseEntity.status(HttpStatus.CREATED).body("Jefe created");
+            return ResponseEntity.status(HttpStatus.CREATED).body(new MessageResponse("Jefe creado"));
         } else {
-            return ResponseEntity.badRequest().body("Error creating jefe");
+            return ResponseEntity.badRequest().body(new MessageResponse("Error creating jefe"));
         }
     }
 
@@ -128,9 +129,9 @@ public class AuthController {
     public ResponseEntity<?> createAbogado(@RequestBody UserRequest userRequest) {
         ResponseEntity<?> response = keycloakService.createUserWithRole(userRequest, abogadoRole);
         if (response.getStatusCode().is2xxSuccessful()) {
-            return ResponseEntity.status(HttpStatus.CREATED).body("Abogado created");
+            return ResponseEntity.status(HttpStatus.CREATED).body(new MessageResponse("Abogado creado"));
         } else {
-            return ResponseEntity.badRequest().body("Error creating abogado");
+            return ResponseEntity.badRequest().body(new MessageResponse("Error creating abogado"));
         }
     }
 
@@ -149,7 +150,7 @@ public class AuthController {
     public ResponseEntity<?> deleteUser(@PathVariable("id") String id) {
         try {
             if (keycloakService.deleteAccount(id))
-                return ResponseEntity.status(HttpStatus.OK).body("User deleted");
+                return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("Usuario desabilitado"));
             else return ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
