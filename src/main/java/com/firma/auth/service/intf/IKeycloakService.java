@@ -10,9 +10,9 @@ import org.springframework.http.ResponseEntity;
 public interface IKeycloakService {
     UserRepresentation getUserById(String userId);
     UserRepresentation mapUserRep(UserRequest user);
-    ResponseEntity<?> createUserWithRole(UserRequest user, String role) throws ErrorDataServiceException;
-    TokenResponse getAccessToken(AuthenticationRequest request) throws ErrorDataServiceException;
+    ResponseEntity<?> createUserWithRole(UserRequest user, String role);
+    TokenResponse getAccessToken(AuthenticationRequest request);
     void emailVerification(String userId);
-    ResponseEntity<?> forgotPassword(String username) throws ErrorDataServiceException;
+    ResponseEntity<?> forgotPassword(String username);
     boolean deleteAccount(String userId);
 }

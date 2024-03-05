@@ -62,7 +62,14 @@ public class KeycloakService implements IKeycloakService {
 
     @Value("${keycloak.credentials.secret}")
     private  String clientSecret;
-    KeycloakSecurityUtil keycloakUtil;
+    private final KeycloakSecurityUtil keycloakUtil;
+
+    @Value("${api.rol.admin}")
+    private String adminRole;
+    @Value("${api.rol.jefe}")
+    private String jefeRole;
+    @Value("${api.rol.abogado}")
+    private String abogadoRole;
 
     @Autowired
     public KeycloakService(KeycloakSecurityUtil keycloakUtil) {
@@ -103,23 +110,19 @@ public class KeycloakService implements IKeycloakService {
     }
 
     @Override
-    public ResponseEntity<?> forgotPassword(String username) throws ErrorDataServiceException {
-        try {
-            UsersResource usersResource = keycloakUtil.getKeycloakInstance().realm(realm).users();
+    public ResponseEntity<?> forgotPassword(String username){
+        UsersResource usersResource = keycloakUtil.getKeycloakInstance().realm(realm).users();
 
-            List<UserRepresentation> userRepresentations = usersResource.search(username);
-            Optional<UserRepresentation> userOptional = userRepresentations.stream().findFirst();
+        List<UserRepresentation> userRepresentations = usersResource.search(username);
+        Optional<UserRepresentation> userOptional = userRepresentations.stream().findFirst();
 
-            if (userOptional.isPresent()) {
-                UserRepresentation userRepresentation = userOptional.get();
-                UserResource userResource = usersResource.get(userRepresentation.getId());
-                List<String> actions = new ArrayList<>();
-                actions.add("UPDATE_PASSWORD");
-                userResource.executeActionsEmail(actions);
-                return ResponseEntity.ok().build();
-            }
-        } catch (Exception e) {
-            throw new ErrorDataServiceException("Error al enviar el correo de recuperación de contraseña");
+        if (userOptional.isPresent()) {
+            UserRepresentation userRepresentation = userOptional.get();
+            UserResource userResource = usersResource.get(userRepresentation.getId());
+            List<String> actions = new ArrayList<>();
+            actions.add("UPDATE_PASSWORD");
+            userResource.executeActionsEmail(actions);
+            return ResponseEntity.ok().build();
         }
         return ResponseEntity.notFound().build();
     }
@@ -177,51 +180,47 @@ public class KeycloakService implements IKeycloakService {
      */
 
     @Override
-    public TokenResponse getAccessToken(AuthenticationRequest request) throws ErrorDataServiceException {
-        try{
-            // Create the request headers
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-            ObjectMapper objectMapper = new ObjectMapper();
-            RestTemplate restTemplate = new RestTemplate();
-            restTemplate.getMessageConverters().add(new ObjectToUrlEncodedConverter(objectMapper));
-            // Create the request body
-            MultiValueMap<String, String> requestBody = new LinkedMultiValueMap<>();
-            requestBody.add("grant_type", grantType);
-            requestBody.add("client_id", clientId);
-            requestBody.add("client_secret", clientSecret);
-            requestBody.add("username", request.getUsername());
-            requestBody.add("password", request.getPassword());
+    public TokenResponse getAccessToken(AuthenticationRequest request){
+        // Create the request headers
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        ObjectMapper objectMapper = new ObjectMapper();
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.getMessageConverters().add(new ObjectToUrlEncodedConverter(objectMapper));
+        // Create the request body
+        MultiValueMap<String, String> requestBody = new LinkedMultiValueMap<>();
+        requestBody.add("grant_type", grantType);
+        requestBody.add("client_id", clientId);
+        requestBody.add("client_secret", clientSecret);
+        requestBody.add("username", request.getUsername());
+        requestBody.add("password", request.getPassword());
 
-            // Create the request entity
-            RequestEntity<MultiValueMap<String, String>> requestEntity = RequestEntity
-                    .post(authServerUrl + "/realms/" + realm + "/protocol/openid-connect/token")
-                    .headers(headers)
-                    .body(requestBody);
-            ParameterizedTypeReference<Map<String, Object>> responseType = new ParameterizedTypeReference<>() {};
-            ResponseEntity<Map<String, Object>> responseEntity = restTemplate.exchange(requestEntity, responseType);
-            Map<String, Object> responseMap = responseEntity.getBody();
-            assert responseMap != null;
-            String role = getRole(request.getUsername());
-            return TokenResponse.builder()
-                    .access_token((String) responseMap.get("access_token"))
-                    .role(role)
-                    .build();
-        }catch (Exception e){
-            throw new ErrorDataServiceException("Error al obtener el token de acceso");
-        }
+        // Create the request entity
+        RequestEntity<MultiValueMap<String, String>> requestEntity = RequestEntity
+                .post(authServerUrl + "/realms/" + realm + "/protocol/openid-connect/token")
+                .headers(headers)
+                .body(requestBody);
+        ParameterizedTypeReference<Map<String, Object>> responseType = new ParameterizedTypeReference<>() {};
+        ResponseEntity<Map<String, Object>> responseEntity = restTemplate.exchange(requestEntity, responseType);
+        Map<String, Object> responseMap = responseEntity.getBody();
+        assert responseMap != null;
+        String role = getRole(request.getUsername());
+        return TokenResponse.builder()
+                .access_token((String) responseMap.get("access_token"))
+                .role(role)
+                .build();
     }
     public String getRole(String username) {
         Keycloak keycloak = keycloakUtil.getKeycloakInstance();
         String userId = keycloak.realm(realm).users().search(username).get(0).getId();
         List<RoleRepresentation> roles = keycloak.realm(realm).users().get(userId).roles().realmLevel().listAll();
         for (RoleRepresentation role : roles) {
-            if (role.getName().equals("ADMIN")) {
-                return "ADMIN";
-            } else if (role.getName().equals("ABOGADO")) {
-                return "ABOGADO";
-            } else if (role.getName().equals("JEFE")) {
-                return "JEFE";
+            if (role.getName().equals(adminRole)) {
+                return adminRole;
+            } else if (role.getName().equals(abogadoRole)) {
+                return abogadoRole;
+            } else if (role.getName().equals(jefeRole)) {
+                return jefeRole;
             }
         }
         return null;

@@ -7,6 +7,7 @@ import com.firma.auth.dto.response.MessageResponse;
 import com.firma.auth.dto.response.TokenResponse;
 import com.firma.auth.exception.ErrorDataServiceException;
 import com.firma.auth.service.impl.KeycloakService;
+import com.firma.auth.service.intf.IKeycloakService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -22,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/auth")
 @SecurityRequirement(name = "Keycloak")
 public class AuthController {
-    private final KeycloakService keycloakService;
+    private final IKeycloakService keycloakService;
 
     @Value("${api.rol.admin}")
     private String adminRole;
@@ -32,7 +33,7 @@ public class AuthController {
     private String abogadoRole;
 
     @Autowired
-    public AuthController(KeycloakService keycloakService) {
+    public AuthController(IKeycloakService keycloakService) {
         this.keycloakService = keycloakService;
     }
 
@@ -47,12 +48,8 @@ public class AuthController {
     @ApiResponse(responseCode = "400", description = "Error al obtener el token de acceso")
     @PostMapping("/login")
     public ResponseEntity<?> getAccessToken(@RequestBody AuthenticationRequest request) {
-        try {
-            TokenResponse token = keycloakService.getAccessToken(request);
-            return new ResponseEntity<>(token, HttpStatus.OK);
-        } catch (ErrorDataServiceException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
-        }
+        TokenResponse token = keycloakService.getAccessToken(request);
+        return new ResponseEntity<>(token, HttpStatus.OK);
     }
 
     /**
