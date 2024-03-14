@@ -8,6 +8,7 @@ import com.firma.auth.dto.response.TokenResponse;
 import com.firma.auth.exception.ErrorDataServiceException;
 import com.firma.auth.service.impl.KeycloakService;
 import com.firma.auth.service.intf.IKeycloakService;
+import com.firma.auth.tool.CryptoUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -31,6 +32,8 @@ public class AuthController {
     private String jefeRole;
     @Value("${api.rol.abogado}")
     private String abogadoRole;
+    @Autowired
+    private CryptoUtil cryptoUtil;
 
     @Autowired
     public AuthController(IKeycloakService keycloakService) {
@@ -47,7 +50,9 @@ public class AuthController {
     @ApiResponse(responseCode = "200", description = "Token obtenido")
     @ApiResponse(responseCode = "400", description = "Error al obtener el token de acceso")
     @PostMapping("/login")
-    public ResponseEntity<?> getAccessToken(@RequestBody AuthenticationRequest request) {
+    public ResponseEntity<?> getAccessToken(@RequestBody AuthenticationRequest request) throws Exception {
+        String password = cryptoUtil.decrypt(request.getPassword());
+        request.setPassword(password);
         TokenResponse token = keycloakService.getAccessToken(request);
         return new ResponseEntity<>(token, HttpStatus.OK);
     }
