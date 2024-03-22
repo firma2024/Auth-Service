@@ -5,8 +5,7 @@ import com.firma.auth.dto.request.AuthenticationRequest;
 import com.firma.auth.dto.request.UserRequest;
 import com.firma.auth.dto.response.MessageResponse;
 import com.firma.auth.dto.response.TokenResponse;
-import com.firma.auth.exception.ErrorDataServiceException;
-import com.firma.auth.service.impl.KeycloakService;
+import com.firma.auth.exception.ErrorKeycloakServiceException;
 import com.firma.auth.service.intf.IKeycloakService;
 import com.firma.auth.tool.CryptoUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -50,7 +49,7 @@ public class AuthController {
     @ApiResponse(responseCode = "200", description = "Token obtenido")
     @ApiResponse(responseCode = "400", description = "Error al obtener el token de acceso")
     @PostMapping("/login")
-    public ResponseEntity<?> getAccessToken(@RequestBody AuthenticationRequest request) throws Exception {
+    public ResponseEntity<?> getAccessToken(@RequestBody AuthenticationRequest request) throws ErrorKeycloakServiceException {
         String password = cryptoUtil.decrypt(request.getPassword());
         request.setPassword(password);
         TokenResponse token = keycloakService.getAccessToken(request);
@@ -61,7 +60,7 @@ public class AuthController {
      * Este metodo permite restaurar la contraseña de un usuario
      * @param username Nombre de usuario
      * @return Mensaje de confirmación ó mensaje de error
-     * @throws ErrorDataServiceException Error al enviar el correo
+     * @throws ErrorKeycloakServiceException Error al enviar el correo
      */
 
     @Operation(summary = "Restaurar contraseña", description = "Envia un correo para restaurar la contraseña")
@@ -69,7 +68,7 @@ public class AuthController {
     @ApiResponse(responseCode = "404", description = "Error al enviar el correo")
     @Parameter(name = "username", description = "Nombre de usuario", required = true)
     @PostMapping("/{username}/forgot-password")
-    public ResponseEntity<?> forgotPassword(@PathVariable String username) throws ErrorDataServiceException {
+    public ResponseEntity<?> forgotPassword(@PathVariable String username) throws ErrorKeycloakServiceException {
         ResponseEntity<?> response = keycloakService.forgotPassword(username);
         if (response.getStatusCode().is2xxSuccessful()) {
             return ResponseEntity.ok(new MessageResponse("Correo enviado"));

@@ -20,21 +20,31 @@ public class CryptoUtil {
         return new SecretKeySpec(SECRET_KEY.getBytes(StandardCharsets.UTF_8), "AES");
     }
 
-    public String encrypt(String data) throws Exception {
-        Key key = generateKey();
-        Cipher c = Cipher.getInstance(ALGORITHM);
-        c.init(Cipher.ENCRYPT_MODE, key);
-        byte[] encVal = c.doFinal(data.getBytes(StandardCharsets.UTF_8));
-        return Base64.getEncoder().encodeToString(encVal);
+    public String encrypt(String data)  {
+        try{
+            Key key = generateKey();
+            Cipher c = Cipher.getInstance(ALGORITHM);
+            c.init(Cipher.ENCRYPT_MODE, key);
+            byte[] encVal = c.doFinal(data.getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(encVal);
+        }catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
-    public String decrypt(String encryptedData) throws Exception {
-        Key key = generateKey();
-        Cipher c = Cipher.getInstance(ALGORITHM);
-        c.init(Cipher.DECRYPT_MODE, key);
-        byte[] decodedValue = Base64.getDecoder().decode(encryptedData);
-        byte[] decVal = c.doFinal(decodedValue);
-        return new String(decVal);
-    }
 
+    public String decrypt(String encryptedData) {
+        try {
+            Key key = generateKey();
+            Cipher c = Cipher.getInstance(ALGORITHM);
+            c.init(Cipher.DECRYPT_MODE, key);
+            byte[] decodedValue = Base64.getDecoder().decode(encryptedData);
+            byte[] decVal = c.doFinal(decodedValue);
+            return new String(decVal);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 }

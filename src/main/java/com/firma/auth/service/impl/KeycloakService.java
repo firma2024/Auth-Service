@@ -6,7 +6,7 @@ import com.firma.auth.dto.request.AuthenticationRequest;
 import com.firma.auth.dto.request.UserRequest;
 import com.firma.auth.dto.response.TokenResponse;
 import com.firma.auth.dto.response.UserResponse;
-import com.firma.auth.exception.ErrorDataServiceException;
+import com.firma.auth.exception.ErrorKeycloakServiceException;
 import com.firma.auth.security.KeycloakSecurityUtil;
 import com.firma.auth.service.intf.IKeycloakService;
 import com.firma.auth.tool.ObjectToUrlEncodedConverter;
@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
@@ -41,7 +42,7 @@ import static java.util.Collections.singletonList;
  * @see UserResponse
  * @see Rol
  * @see TokenResponse
- * @see ErrorDataServiceException
+ * @see ErrorKeycloakServiceException
  * @see AuthenticationRequest
  */
 
@@ -175,40 +176,44 @@ public class KeycloakService implements IKeycloakService {
     /**
     Método para obtener el token de acceso a partir de las credenciales de un usuario.
     @param request Credenciales del usuario.
-    @throws ErrorDataServiceException Excepción en caso de error en el servicio de datos.
+    @throws ErrorKeycloakServiceException Excepción en caso de error en el servicio de datos.
     @return TokenResponse con el token de acceso y el rol del usuario.
      */
 
     @Override
-    public TokenResponse getAccessToken(AuthenticationRequest request){
+    public TokenResponse getAccessToken(AuthenticationRequest request) throws ErrorKeycloakServiceException {
         // Create the request headers
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        ObjectMapper objectMapper = new ObjectMapper();
-        RestTemplate restTemplate = new RestTemplate();
-        restTemplate.getMessageConverters().add(new ObjectToUrlEncodedConverter(objectMapper));
-        // Create the request body
-        MultiValueMap<String, String> requestBody = new LinkedMultiValueMap<>();
-        requestBody.add("grant_type", grantType);
-        requestBody.add("client_id", clientId);
-        requestBody.add("client_secret", clientSecret);
-        requestBody.add("username", request.getUsername());
-        requestBody.add("password", request.getPassword());
+        try{
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+            ObjectMapper objectMapper = new ObjectMapper();
+            RestTemplate restTemplate = new RestTemplate();
+            restTemplate.getMessageConverters().add(new ObjectToUrlEncodedConverter(objectMapper));
+            // Create the request body
+            MultiValueMap<String, String> requestBody = new LinkedMultiValueMap<>();
+            requestBody.add("grant_type", grantType);
+            requestBody.add("client_id", clientId);
+            requestBody.add("client_secret", clientSecret);
+            requestBody.add("username", request.getUsername());
+            requestBody.add("password", request.getPassword());
 
-        // Create the request entity
-        RequestEntity<MultiValueMap<String, String>> requestEntity = RequestEntity
-                .post(authServerUrl + "/realms/" + realm + "/protocol/openid-connect/token")
-                .headers(headers)
-                .body(requestBody);
-        ParameterizedTypeReference<Map<String, Object>> responseType = new ParameterizedTypeReference<>() {};
-        ResponseEntity<Map<String, Object>> responseEntity = restTemplate.exchange(requestEntity, responseType);
-        Map<String, Object> responseMap = responseEntity.getBody();
-        assert responseMap != null;
-        String role = getRole(request.getUsername());
-        return TokenResponse.builder()
-                .access_token((String) responseMap.get("access_token"))
-                .role(role)
-                .build();
+            // Create the request entity
+            RequestEntity<MultiValueMap<String, String>> requestEntity = RequestEntity
+                    .post(authServerUrl + "/realms/" + realm + "/protocol/openid-connect/token")
+                    .headers(headers)
+                    .body(requestBody);
+            ParameterizedTypeReference<Map<String, Object>> responseType = new ParameterizedTypeReference<>() {};
+            ResponseEntity<Map<String, Object>> responseEntity = restTemplate.exchange(requestEntity, responseType);
+            Map<String, Object> responseMap = responseEntity.getBody();
+            assert responseMap != null;
+            String role = getRole(request.getUsername());
+            return TokenResponse.builder()
+                    .access_token((String) responseMap.get("access_token"))
+                    .role(role)
+                    .build();
+        }catch (HttpClientErrorException e){
+            throw new ErrorKeycloakServiceException(e.getMessage(), e.getStatusCode().value());
+        }
     }
     public String getRole(String username) {
         Keycloak keycloak = keycloakUtil.getKeycloakInstance();
