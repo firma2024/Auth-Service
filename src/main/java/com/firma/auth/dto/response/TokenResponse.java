@@ -1,4 +1,4 @@
-package com.firma.auth.dto;
+package com.firma.auth.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,5 +9,4 @@ import lombok.Data;
 public class TokenResponse {
     private String access_token;
     private String role;
-
 }

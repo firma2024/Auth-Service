@@ -26,7 +26,6 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http)
             throws Exception {
         http.csrf(AbstractHttpConfigurer::disable);
-        http.cors(AbstractHttpConfigurer::disable);
         http.authorizeHttpRequests( auth -> {
             auth.requestMatchers("/api/auth/login").permitAll();
             auth.requestMatchers("/api/auth/admin").permitAll();
@@ -37,7 +36,6 @@ public class SecurityConfig {
         http.oauth2ResourceServer( t -> {
             t.jwt( configurer -> configurer.jwtAuthenticationConverter(jwtAuthConverter));
         });
-
         http.sessionManagement(
                 t -> t.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         );
