@@ -1,8 +1,0 @@
-CLIENT_ID=admin-cli
-CREDENTIALS_SECRET=bpMEQFy4PLqfCMw5uuhdjziidNam0hly
-GRANT_TYPE=password
-NAME=admin
-PASSWORD=admin
-REALM=Firma
-RESOURCE_CLIENT_ID=backend
-SERVER_URL=https://keycloak-production-1044.up.railway.app
