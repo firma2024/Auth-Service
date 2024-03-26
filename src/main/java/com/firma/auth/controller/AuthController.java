@@ -51,6 +51,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> getAccessToken(@RequestBody AuthenticationRequest request) throws ErrorKeycloakServiceException {
         String password = cryptoUtil.decrypt(request.getPassword());
+        System.out.println(password);
         request.setPassword(password);
         TokenResponse token = keycloakService.getAccessToken(request);
         return new ResponseEntity<>(token, HttpStatus.OK);
