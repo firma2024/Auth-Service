@@ -60,7 +60,6 @@ public class AuthController {
      * Este metodo permite restaurar la contraseña de un usuario
      * @param username Nombre de usuario
      * @return Mensaje de confirmación ó mensaje de error
-     * @throws ErrorKeycloakServiceException Error al enviar el correo
      */
 
     @Operation(summary = "Restaurar contraseña", description = "Envia un correo para restaurar la contraseña")
@@ -68,7 +67,7 @@ public class AuthController {
     @ApiResponse(responseCode = "404", description = "Error al enviar el correo")
     @Parameter(name = "username", description = "Nombre de usuario", required = true)
     @PostMapping("/{username}/forgot-password")
-    public ResponseEntity<?> forgotPassword(@PathVariable String username) throws ErrorKeycloakServiceException {
+    public ResponseEntity<?> forgotPassword(@PathVariable String username) {
         ResponseEntity<?> response = keycloakService.forgotPassword(username);
         if (response.getStatusCode().is2xxSuccessful()) {
             return ResponseEntity.ok(new MessageResponse("Correo enviado"));

@@ -148,12 +148,6 @@ public class KeycloakService implements IKeycloakService {
     }
 
     @Override
-    public UserRepresentation getUserById(String userId) {
-        Keycloak keycloak = keycloakUtil.getKeycloakInstance();
-        return keycloak.realm(realm).users().get(userId).toRepresentation();
-    }
-
-    @Override
     public UserRepresentation mapUserRep(UserRequest user) {
         UserRepresentation userRep = new UserRepresentation();
         userRep.setUsername(user.getUsername());

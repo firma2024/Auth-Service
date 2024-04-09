@@ -8,7 +8,6 @@ import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.http.ResponseEntity;
 
 public interface IKeycloakService {
-    UserRepresentation getUserById(String userId);
     UserRepresentation mapUserRep(UserRequest user);
     ResponseEntity<?> createUserWithRole(UserRequest user, String role);
     TokenResponse getAccessToken(AuthenticationRequest request) throws ErrorKeycloakServiceException;
