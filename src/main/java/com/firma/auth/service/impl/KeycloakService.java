@@ -168,10 +168,10 @@ public class KeycloakService implements IKeycloakService {
     }
 
     /**
-    Método para obtener el token de acceso a partir de las credenciales de un usuario.
-    @param request Credenciales del usuario.
-    @throws ErrorKeycloakServiceException Excepción en caso de error en el servicio de datos.
-    @return TokenResponse con el token de acceso y el rol del usuario.
+    Method to obtain the access token from Keycloak.
+    @param request Credentials from the user.
+    @throws ErrorKeycloakServiceException if the request fails, an exception is thrown.
+    @return TokenResponse with the access token and the role of the user.
      */
 
     @Override
